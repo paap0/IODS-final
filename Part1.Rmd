@@ -1,0 +1,573 @@
+
+---
+title: "Part1"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+---
+
+## <span style="color:purple">**5<sup>th</sup> WEEK**: Dimensionality reduction</span>
+
+Background
+
+More than two thirds of the total population of Ethiopia is estimated to be at risk of malaria. Therefore, malaria is the leading public health problem in Ethiopia.
+
+Objective
+
+To investigate the determinants of malaria Rapid Diagnosis Test (RDT) result and the association between socio-economic, demographic and geographic factors.
+
+To investigate the association between socio-economic and demographic factors.
+
+Method
+
+The study used data from household cluster malaria survey which was conducted from December 2006 to January 2007. A total of 224 clusters of about 25 households each were selected from the Amhara, Oromiya and Southern Nation Nationalities and People (SNNP) regions of Ethiopia. A multiple correspondence analysis was used to jointly analyse malaria RDT result, socio-economic, demographic and geographic factors.
+
+Results
+
+The result from multiple correspondence analysis shows that there is association between malaria RDT result and different socio-economic, demographic and geographic variables.
+
+Conclusion
+
+There is an indication that some socio-economic, demographic and geographic factors have joint effects. It is important to confirm the association between socio-economic, demographic and geographic factors using advanced statistical techniques.
+
+MATERIALS
+The socio-economic, demographic and geographic covariates comprised the baseline socio-economic status,demographic, and geographic variables that included gender, age, family size, region, altitude, main source of drinking water, time taken to collect water, toilet facilities, availability of electricity, radio and television, total number of rooms, main material of the room's wall, main material of the room's roof and main material of the room's floor. Malaria test RDT result, age and sex were collected at individual level. Altitude, main source of drinking water, time taken to collect water, toilet facilities, availability of electricity, radio, television, total number of rooms, main material of the room's walls, main material of the room's roof and main material of the room's floor were all collected at household level.
+
+### <span style="color:purple">Introduction</span>
+
+### Introduction
+
+This data is a result from a survey carried out on children of primary school who suffered from food poisoning. They were asked about their symptoms and about what they ate.
+
+
+Data including grades, demographic, social and school related features were collected in two Portuguese schools using school reports and questionnaires and stored as two separate datasets regarding performance in distinct subjects, namely Mathematics and Portuguese.
+
+The original data of the analysis in this exercise are freely available as a [zip file](https://archive.ics.uci.edu/ml/machine-learning-databases/00320/). Additional  [metadata](https://archive.ics.uci.edu/ml/datasets/Student+Performance) information describes basic characteristics of the data sets. For the purpose of this particular exercise they needed to be joined and edited according to [this R script](https://github.com/paap0/IODS-project/blob/master/data/create_alc.R). The variables not used for joining the two data sets were combined by averaging them. An additional variable *high_use* was created by taking the average of the sum of alcohol consumption during weekdays and weekends, which was thereafter further modified to yield a logical TRUE or FALSE *high_use* variable. A treshold value for higher than average alcohol consumption was chosen to be more than 2 weekly proportions.
+
+The final data set includes 382 respondents and 35 both integer and factorial variables. The names of the variables are listed below (explanations can be found   [here](https://archive.ics.uci.edu/ml/datasets/Student+Performance))
+
+Variable labels and their explanations are described below:
+
+
+```{r message=FALSE, warning=FALSE, cache=FALSE, include=FALSE}
+#rm(list = ls())
+setwd("~/GitHub/IODS-final")
+# Define packages required by this script.
+library(dplyr)
+library(car)
+library(ggplot2)
+library(stargazer)
+library(GGally)
+library(tidyverse)
+library(corrplot)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(tableone)
+library(dplyr)
+library(knitr)
+library(DT)
+library(xtable)
+library(factoextra)
+library(FactoMineR)
+library(Factoshiny)
+library(FactoInvestigate)
+library(kableExtra)
+library(corrplot)
+library(plotly)
+library(dplyr)
+
+summaryKable <- function(dataFrame) {
+  require(dplyr)
+  require(stringr)
+  vect <- sapply(dataFrame, function(x) {
+    if(!is.factor(x)) { 
+      a <- c(quantile(x, probs = c(0,0.25,0.5), na.rm = T), 
+             mean(x, na.rm = T),
+             quantile(x, probs = c(0.75,1), na.rm = T)) %>% 
+        formatC(format = "f", digits = 3) %>% 
+        unname() 
+    }
+    
+    if(is.factor(x)) {
+      a <- sapply(1:5, function(y) 
+            sum(x == levels(x)[y]) %>% 
+            paste(levels(x)[y],. , sep = ":\ ")) 
+      a <- c("Levels", a) %>% str_replace_all("NA: NA", "--")
+    }
+    
+    return(a)
+  })
+  row.names(vect) <- c("Min", "1st Q", "Median", "Mean", "3rd Q", "Max")
+  return(t(vect))
+}
+
+
+
+```
+
+Data are loaded. The survey has altogether 382 respondents and 19 variables, which are described below:
+
+```{r echo=TRUE, fig.align="center", fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
+
+dfalc<-read.csv(file="alccatfin.csv",header=TRUE)
+dfalc<-mutate_all(dfalc,as.factor)
+dfalc$Final_Grade<-as.numeric(dfalc$Final_Grade)
+
+Label<-as.matrix(colnames(dfalc))
+
+Variable<-c("Gender", "Age categorized",  "Parent's cohabitation status","Mother큦 educational status categorized (less than secondary education, secondary education, higher education", "Father큦 educational status categorized (less than secondary education, secondary education, higher education", "Mother큦 job (teacher, health care, civil services, at home, other)", "Father큦 job (teacher, health care, civil services, at home, other)", "Student큦 guardian: mother, father, other)", "Family educational support", "Willingness to take higher education yes/no", "Relationship", "Extra-cullicular activities", "Familial relationships categorized (very bad to bad, average, good to excellent)","Going out with friends categorized (very low or low, average, high or very high)","Health status categorized (very bad to bad, average, good to very good)", "Amount of failed classes: none (one or more than one)", "Amount of shool absences one or less, 2-6hours, more than six classes", "Final grade categorized by quartiles", "Final grade", "Alcohol consumption >2 either during the week or at weekends")
+
+Level<-as.matrix(dfalc %>% sapply(levels))
+
+om<- data.frame(Label,Variable,Level)
+
+om$Level[3]<-"A(Alone),T(Together)"
+om$Level[19]<-"numeric from 0 to 20"
+rownames(om)<-NULL
+kable(om, title="Basic elements of the dataset","html") %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# load data from the library
+
+
+
+summaryKable(dfalc) %>% 
+  kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>%
+scroll_box(height = "160px")
+
+```
+
+```{r}
+#looking at correlations
+library(vcd)
+
+catcorrm <- function(vars, df) sapply(vars, function(y) sapply(vars, function(x) assocstats(table(df[,x], df[,y]))$cramer))
+
+cor_matrix<-catcorrm(df=dfalc,vars=colnames(dfalc))
+
+cb <- as.data.frame(cor_matrix) # Create a DF of the correlation matrix.
+cor_matrix_high <- as.data.frame(matrix(nrow = nrow(cor_matrix), ncol = ncol(cor_matrix))) #Copy
+colnames(cor_matrix_high) <- colnames(cor_matrix) #the structure of
+rownames(cor_matrix_high) <- rownames(cor_matrix) #cor_matrix.
+cor_threshold <- 0.2
+# Loop through the correlation matrix and save only values that exceed the threshold.
+for(col in names(cb)) {
+  for(row in 1:length(cb[[col]])) {
+    if(abs(cb[[col,row]]) > cor_threshold & abs(cb[[col,row]]) < 1) { 
+      cor_matrix_high[col,as.character(rownames(cb)[row])] <- round(cb[[col,row]], digits = 2)
+    }
+  }
+}
+
+# Print the matrix.
+cor_matrix_high
+```
+
+```{r fig.height=7, fig.width=6, fig.align= "center", message=FALSE, warning=FALSE}
+#lets plot  
+#density plots for numerical variables7
+colNames <- names(dfalc)[2:ncol(dfalc)]
+for(i in colNames){
+    plt<-ggplot(dfalc, aes_string(x=i)) + 
+      geom_bar(aes(fill = Gender), position = "dodge", stat="count")+
+scale_fill_manual(values = c("green","purple"))
+      print (plt)
+}
+
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Multiple correspondance analysis
+
+KreateTableOne = function(x, ...){
+  t1 = tableone::CreateTableOne(data=x, ...)
+  t2 = print(t1, quote=TRUE)
+  rownames(t2) = gsub(pattern='\\"', replacement='', rownames(t2))
+  colnames(t2) = gsub(pattern='\\"', replacement='', colnames(t2))
+  return(t2)
+}
+
+table1 = KreateTableOne(x=dfalc, strata="Gender")
+
+table2 = KreateTableOne(x=dfalc, strata="Performancegroup")
+
+table3 = KreateTableOne(x=dfalc, strata="High_alcohol")
+```
+
+These data summarize the answers given by different categories of people to the following question : <span style="color:purple">**according to you, what are the reasons that can make hesitate a woman or a couple to have children?**</sup>
+
+The goal is to discover interesting relations among the variables. 
+
+
+## Research question
+
+Possibly hypothesis (2points)
+
+## Link to my data wrangling script
+
+A link to your data wrangling script. See the general instructions. (max 5 points)
+
+Description of your data and its variables. Where is the data from, what does it relate to, what do the variables represent, what has been done to the data before analysis? (max 2 points)
+
+Visually clear and interesting explorations of the variables of interest in the data, from the point of view of your research question. Include interpretations of the distributions and relationships of the variables. Use captions to draw the reader's focus on the interesting parts of your tables and graphics. (max 8 points)
+
+Brief description of the method(s) you are using in your own words (max 3 points)
+
+Presentation of the results of your analysis including visualizations and summaries and a thorough interpretation of the results including a validation analysis of the method. (max 16 points)
+
+Conclusions and discussion (max 2 points)
+
+An 'abstract' at the beginning of the page with a summary of your analysis (max 2 points)
+
+The total maximum of Final AssignmYour full name, date and email address at the beginning of the page. Use the yaml header of the RMarkdown document to set these.
+
+Brief description of the "research question" you are exploring, possibly including your hypothesis (max 2 points)
+
+A link to your data wrangling script. See the general instructions. (max 5 points)
+
+
+Description of your data and its variables. Where is the data from, what does it relate to, what do the variables represent, what has been done to the data before analysis? (max 2 points)
+
+
+Visually clear and interesting explorations of the variables of interest in the data, from the point of view of your research question. Include interpretations of the distributions and relationships of the variables. Use captions to draw the reader's focus on the interesting parts of your tables and graphics. (max 8 points)
+
+
+Brief description of the method(s) you are using in your own words (max 3 points)
+
+
+Presentation of the results of your analysis including visualizations and summaries and a thorough interpretation of the results including a validation analysis of the method. (max 16 points)
+
+
+Conclusions and discussion (max 2 points)
+
+An 'abstract' at the beginning of the page with a summary of your analysis (max 2 points)
+
+The total maximum of Final Assignm
+
+### <span style="color:purple">Summary and graphical overview</span>
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::kable(table1)
+table1%>%
+    kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::kable(table2)
+table2%>%
+    kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::kable(table3)
+table3%>%
+    kable("html", align = "rrr", caption = "Data variable summary") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
+
+
+
+### Methodology
+
+
+
+Next, detailed summary statistics and box plots are printed.
+
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
+library(settings)
+reset(options)
+options("scipen"=10, "digits"=2)
+tab1<-CreateTableOne(vars=colnames(dfalc) ,data=dfalc,factorVars = colnames(dfalc))
+summary(tab1)
+reset(options)
+```
+
+
+
+
+### <span style="color:purple">Values from Finland with extreme value countries</span>
+
+
+Many of the variables have quite a few outliers meaning that the countries differ tremendeously with each other - as expected. For my own interest, and overall comparison of the countries with extreme values (max and min value countries of each variable according to the order of them) an additional table with an additional row with our own national values is printed.
+```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
+
+#print("Max and min value countries for female share in parliament")
+
+#h<-rbind(human[which(human$parl.prop==max(human$parl.prop)),],
+#human[which(human$parl.prop==min(human$parl.prop)),])
+
+#out<-rbind(a,b,c,d,e,f,g,h,human["Finland",])
+
+#kable(out, "html") %>%
+ # kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+The variables ranges are indeed large. Life exectancy is highest, not surprisingly, in Japan with the age of 84 and lowest in Swaziland being only 49 years. Extreme maternal mortality ratio is reported in Sierra Leone and adolescent birth rate in Niger. A variable related to wealth, namely general income, is highest in Qatar with the value of 123 124,
+and a huge difference exists to the poorest country, Central African Republic reporting a value of 581. Surprisingly, the female / male ratio for population with at least secondary school eduction is highest in Myanmar.
+
+
+
+### <span style="color:purple">Variable correlations</span>
+
+```{r eval=FALSE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+cor_fun <- function(data, mapping, method="pearson", ndp=2, sz=5, stars=TRUE, ...){
+
+    data <- na.omit(data[,c(as.character(mapping$x), as.character(mapping$y))])
+
+    x <- data[,as.character(mapping$x)]
+    y <- data[,as.character(mapping$y)]
+
+    corr <- cor.test(x, y, method=method)
+    est <- corr$estimate
+    lb.size <- sz* abs(est) 
+
+    if(stars){
+      stars <- c("***", "**", "*", "")[findInterval(corr$p.value, c(0, 0.001, 0.01, 0.05, 1))]
+      lbl <- paste0(round(est, ndp), stars)
+    }else{
+      lbl <- round(est, ndp)
+    }
+
+    ggplot(data=data, mapping=mapping) + 
+      annotate("text", x=mean(x), y=mean(y), label=lbl, size=lb.size,...)+
+      theme(panel.grid = element_blank())
+  }
+
+
+ggpairs(human%>%mutate_all(as.numeric), 
+        lower=list(continuous=wrap("smooth", colour="purple")),
+        diag=list(continuous=wrap("barDiag", fill="purple")),
+        upper=list(continuous=cor_fun),title="Graphical overview of the 8 variables")
+
+```
+&nbsp;
+
+The only variable that seems normally distributed is expected years of shooling.
+From the variable connectivity, it can be captured that there are several relevant correlations apart from labour force participation ratio and female share in parliament. Not unexpectedly, life expectancy is negatively correlated with maternal mortality and adolescent birth rate. On the contrary, it is positively correlated with expected years of education and general income.  Expected years of education also has negative correlations, e.g. with maternal mortality. 
+To encompass, it seems basically that the more educated women there is, the better the longevity, the higher the overall educational expectancy and general income and lower maternal mortality and adolescent birth rate, and, interestingly, two variables (lab.f_m and parl.prop) are only weakly correlated with any of the other variables.
+
+
+### <span style="color:purple">Principal component analysis</span>
+
+
+
+To begin with, it has to clarified, that PCA is an unsupervised approach. This means that the directions of the generated components are identified without using a response variable (Y) to determine their direction. In other words PCA focuses on recognizing sets of characteristics without an association to any response variable.PCA extracts important variables in form of coponents from a large set of variables available in a dataset.The main aim to recognize relationships between these charasteristics, thus, extract low dimensional set of features from a high dimensional dataset with to capture as much information as possible. With fewer variables further visualization of the data is more meaningful, but the method can also be used to editing data for subsequent analyses. Components are expressed by relationships of the original variables, they do not correlate with each other and each is less important than the previous one in terms of explained variance.
+
+```{r}
+res.mca = MCA(dfalc,quanti.sup=19, graph = FALSE)
+#Investigate(res.mca)
+#res.shiny=MCAshiny(alc)
+```
+
+#### <span style="color:purple">PCA on unscaled data</span>
+
+According to the instructions, PCA will be run twice (with unscaled and scaled predictors). Firstly, the former analysis is carried out, and a biplot is created.
+Biplots are basically scatter plots using observations as x and 2 principal components as y coordinates. Labeled arrows connect original variables to the principal components and their length are proportional to the standard deviations. Small angle between a variable and a PC axis reffers to high positive correlation.
+
+
+
+
+#### <span style="color:purple">PCA on scaled data</span>
+
+
+
+It can be seen that scaling dramatically changes results, because the different scaling factors directly influence calculation of the PC components. GNI does not dominate the variance anymore, and the results can be interpreted: 
+First principal component is a linear combination of original variables and captures the maximum variance in the dataset. It determines the direction of highest variability in the dataset. Further, the first principal component results in a line which is closest to the data minimizing the sum of squared distance between a data point and the line. The generated PC1 covers 53.6 percent of the variation here. Characteristics of the PC1 are high maternal mortality ratio and adolescent birth rate (positive loadings) as well as expected schooling years, life expectancy, female educational proportion and income (negative loadings). This component thus captures longevity and educational aspects. By looking at the graph, it can be further interpreted that when maternal mortality and adolescent birth rate are low education, longevity, women schooling and general income are high and vice versa.
+The second component is also a linear combination of original predictors and it aims to capture *the remaining variance* in the data set and is *uncorrelated* with the first component (the correlation between first and second component should is zero). In this example, PC2 covers 16.2 percent of the variation. PC2 encompasses labour force participation ratio and female share in parliament, which were already recognized as "different kind of"-variables at the first preliminary investigation of the data. It could be scrutinized as "gender equality"-component.
+
+
+
+### <span style="color:purple">Multiple correscondence analysis</span>
+
+
+Corresponcence or multiple correspondence analysis can be used in dimensionality reduction in cases of categorical variables. MCA is a generalization of PCA and an extension of CA. Basically, cross-tabulations are used to provide input for graphically present the data. Methods can be used for visualization or pre-editing of the data.
+
+#### <span style="color:purple">Tea data and My tea data</span>
+
+We practice multiple corresponce analysis using the tea dataset and MCA() function that come in the package "FactoMineR" by Francois Husson, Julie Josse, Sebastien Le, and Jeremy Mazet. Additionally, I use "factoextra".
+
+
+FactoMineR package is required with its tea dataset reporting a questionnare on tea drinking habits. From the collected 18 variables I choose to use altogether six categorical variables: where, work, How, how, age_Q and sex. To both see the categories and number (percentage) of respondents in each of them a summary is printed. Based on my interest I stratify it by gender:
+
+#### <span style="color:purple">My tea data summary and graphical overview</span>
+
+
+There seems to be some variation in each of the variables. The category with the lowest frequency seems to be in the "How"-variable (other; only 9 observations), however, not too low to potentially distort MCA analysis. 
+Age distribution shows, that the young ones are the largest group having answered the questionnaire and among them females are overrepresented. On the other hand, in the group of 25-34 year olds there are a lot more males than there are females. Altogether, there are more female observations than there are males. However, there are respondents in each age group. Surprisingly, as I assume this dataset to originate from Great Brittain, most respondents have reported to use either tea bags or tea bags and unpacked tea, both. A minority uses unpackaged tea, which I would have thought to be "the right Brittish manner". Most drink their tea alone, some use milk, a few lemon. There is no honey option at all, and sugar variable is recorded as a separate variable and is not used in this analysis.  Most buy their tea in a chain store, and men visit tea shops more often than women - again surprising phenomena to me. And finally, tea is mostly drank outside work.
+
+#### <span style="color:purple">MCA</span>
+
+Next MCA analysis on the chosen tea data is carried out. To do that, firstly, a crosstabulated frequency table is standardized to yield relative frequencies across the cells to sum up to 1.0. The aim of a MCA analysis is to represent the entries in the table of relative frequencies in terms of the distances between individual rows and/or columns in a low-dimensional space.
+
+The output of the MCA() function is a list including :
+
+```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE, warnings=FALSE}
+res_mca <- MCA(dfalc, quanti.sup=19,graph = FALSE)
+print(res_mca)
+
+summary(res_mca, nbelements = Inf, ncp = 2, file = "summary_mca.xls")
+```
+
+and looks like this for the chosen tea-dataset. The v-test in the summary follows a gaussian distribution referring to the category having a coordinate significantly different from zero.
+For the variables a correlation ratio (squared) between it and each dimension is given (eta toiseen) enabling the plotting of the variables.
+```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE, warnings=FALSE}
+summary(res_mca)
+```
+
+The dimdesc function might help to interpret the dimensions. It allows to see which variables the axes are the most linked to, i.e. which categories describe the best each axis.  
+
+```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE, warnings=FALSE}
+dimdesc(res_mca,axes=1:2,proba=0.05)
+```
+
+##### <span style="color:purple">Scree plot</span>
+
+which(dfalc)
+
+To visualize the percentage of inertia explained by each MCA dimensions:
+```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE}
+eig.val <- res_mca$eig
+barplot(eig.val[, 2], 
+        names.arg = 1:nrow(eig.val), 
+        main = "Variances Explained by Dimensions (%)",
+        xlab = "Principal Dimensions",
+        ylab = "Percentage of variances",
+        col ="steelblue")
+# Add connected line segments to the plot
+lines(x = 1:nrow(eig.val), eig.val[, 2], 
+      type = "b", pch = 19, col = "red")
+```
+
+The first two dimensions of MCA explain *only* about 26% of variance. Thus, already at this point I think I could perhaps have chosen my variables better to explain each others variation more.
+
+```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+fviz_mca_biplot(res_mca,
+               repel = TRUE, # Avoid text overlapping (slow if many point)
+               ggtheme = theme_minimal())
+```
+
+##### <span style="color:purple">Biplots</span>
+
+To further clarify the MCA results graphical representation is used. Firstly, there is biplot showing the global pattern within the data. Observations are represented by blue points and variables by red triangles and labels. The distance between any observation points or variable points gives a measure of their similarity (or dissimilarity). Similar types of individuals are close on the map, as well as similar kinds of variables.
+
+```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+fviz_mca_biplot(res_mca, 
+               repel = TRUE, # Avoid text overlapping (slow if many point)
+               ggtheme = theme_minimal())
+```
+
+Next, a plot is created to visualize the correlation between variables and MCA principal dimensions:
+
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+fviz_mca_var(res_mca, choice = "mca.cor", 
+            repel = TRUE, # Avoid text overlapping (slow)
+            ggtheme = theme_minimal())
+```
+
+The plot should help to identify variables that are the most correlated with each dimension. The squared correlations between variables and the dimensions are used as coordinates.
+
+
+And finally, as is described in the exercise instructions: "The typical graphs show the original classes of the discrete variables on the same "map", making it possible to reveal connections (correspondences) between different things that would be quite impossible to see from the corresponding cross tables (too many numbers!)."
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("ind"), habillage = "quali")
+```
+
+SelectMod selects categories according tot heir quality of representation, contribution, their name.
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("ind"), autolab="y",cex=0.7,selectMod="cos2 10")
+```
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("ind"), autolab="y",cex=0.7,selectMod="contrib 20")
+```
+Select allows us to select individuals
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("var","quanti.sup"), autolab="y",cex=0.7,select="cos2 20")
+```
+
+Simultanous representation with a selection for the individuals with select and a selection for the categories with Selectmod
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, autolab="y",cex=0.7,select="cos2 20",selectMod="cos2 10")
+```
+
+Graphs of the variales
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, choix="var",xlim=c(0,0.6), ylim=c(0,0.6),cex=0.7)
+```
+To plot dimensions 3 and four we simply define the axis:
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("var"), select="contrib 20", axes=3:4,cex=0.7)
+```
+The categories that are best projected to the third and fourth axis.
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("ind"), select="contrib 20", axes=3:4,cex=0.7)
+```
+
+The function plotellipses draws one graph per qalitative variable with a confidence ellipse around each category. Ellipses do not overlap meaning that the sub-populations are significantly separated.
+Confidence ellipses around the categories for the ariables 14 to 17 for example
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plotellipses(res_mca, keepvar=c(14:17),cex=0.7)
+```
+Or by using [this nice approach](http://www.gastonsanchez.com/visually-enforced/how-to/2012/10/13/MCA-in-R/) to display both the observations and the categories. Moreover, since some individuals will be overlapped, we can add some density curves with geom_density2d() to see those zones that are highly concentrated:
+
+```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+ # MCA plot of observations and categories
+dfalcqual<-dfalc[-19]
+res.mca<-MCA(dfalcqual,graph=FALSE)
+cats = apply(dfalcqual, 2, function(x) nlevels(as.factor(x)))
+
+mca1_vars_df = data.frame(res.mca$var$coord, Variable = rep(names(cats), cats))
+
+ggplot(data = mca1_vars_df, aes(x = Dim.1, y = Dim.2)) +
+  geom_hline(yintercept = 0, colour = "gray70") +
+  geom_vline(xintercept = 0, colour = "gray70") +
+  geom_point(colour = "gray50", alpha = 0.7) +
+  geom_density2d(colour = "gray80") +
+  geom_text(data = mca1_vars_df, 
+            aes(x = Dim.1, y = Dim.2, 
+                label = rownames(mca1_vars_df), colour = Variable)) +
+  ggtitle("MCA plot of variables using My tea data") +
+  scale_colour_discrete(name = "Variable")
+```
+
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+classif(res_mca, file="",dim=1:2,nclus=-1,selec="cos2",coef=1,mmax=1,nmax=10,graph=TRUE)
+```
+On this biplot the first two dimensions are shown.Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).
+We observe that there are a few categories located quie near to the center of the graph. Unpackaded tea and tea shops as well as tea bag and chain store categories are close to one another. Additionally, not work, alone and age category from 45 to 59 are located in one group.There seems to be one outlier category, those who drink tea with "other"" ways on the top of the plot. 
+The first dimension captures mainly in what form people have their tea and where they buy it from. Individuals with high coordinates on the first component tend to by their tea in tea shops unpackaged and they are likely to drink it with lemon, whereas low coordinate-individuals buy tea bags in chain stores (more common~closer to the axis) and use milk.
+For the second dimension there are "in-between" individuals at the top: they do their either unpacked and teabag shopping in either the chain stores and the tea shops, and cannot really say how they drink it and thus describe it using "other". 
+
+References: 
+
+-  [https://www.analyticsvidhya.com/blog/2016/03/practical-guide-principal-component-analysis-python/](https://www.analyticsvidhya.com/blog/2016/03/practical-guide-principal-component-analysis-python/)
+
+-  [http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/114-mca-multiple-correspondence-analysis-in-r-essentials/#biplot](http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/114-mca-multiple-correspondence-analysis-in-r-essentials/#biplot)
+
+-  [https://georgemdallas.wordpress.com/2013/10/30/principal-component-analysis-4-dummies-eigenvectors-eigenvalues-and-dimension-reduction/](https://georgemdallas.wordpress.com/2013/10/30/principal-component-analysis-4-dummies-eigenvectors-eigenvalues-and-dimension-reduction/)
+
+-  [http://factominer.free.fr/factomethods/categories-description.html](http://factominer.free.fr/factomethods/categories-description.html)
+[http://factominer.free.fr/factomethods/dimensions-description.html](http://factominer.free.fr/factomethods/dimensions-description.html)
+
+-  [http://factominer.free.fr/factomethods/multiple-correspondence-analysis.html](http://factominer.free.fr/factomethods/multiple-correspondence-analysis.html)
+
+-  [http://www.gastonsanchez.com/visually-enforced/how-to/2012/10/13/MCA-in-R/](http://www.gastonsanchez.com/visually-enforced/how-to/2012/10/13/MCA-in-R/)
