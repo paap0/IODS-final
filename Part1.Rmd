@@ -598,7 +598,7 @@ ggplot(data = mca1_vars_df, aes(x = Dim.1, y = Dim.2)) +
 ```
 
 
-```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+```{r echo=FALSE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 classif(res_mca, file="",dim=1:2,nclus=-1,selec="cos2",coef=1,mmax=1,nmax=10,graph=TRUE)
 ```
 

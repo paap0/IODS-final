@@ -1,6 +1,29 @@
 ---
-title: "index"
-output: html_document
+title: "IODS-final"
+author: "Paula Bergman"
+output:
+  html_document:
+    theme: cosmo
+    author: Paula Susanna Bergman, December 2017, paula.bergman@helsinki.fi
+    toc: true
+    toc_depth: 4
+    fig_caption: true
+    fig_width: 6
+    fig_height: 4
+    code_folding: hide
+---
+
+***
+  
+```{r child = "README.md"}
+```
+  
+***
+  
+```{r child = "Part1.Rmd"}
+```
+
+***
 ---
 
 ```{r setup, include=FALSE}
