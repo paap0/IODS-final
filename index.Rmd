@@ -1,10 +1,9 @@
 ---
 title: "IODS-final"
-author: "Paula Bergman"
+author: "Paula Bergman, December 2017, paula.bergman@helsinki.fi"
 output:
   html_document:
     theme: cosmo
-    author: Paula Susanna Bergman, December 2017, paula.bergman@helsinki.fi
     toc: true
     toc_depth: 4
     fig_caption: true
