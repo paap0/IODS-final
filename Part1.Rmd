@@ -111,7 +111,7 @@ summaryKable <- function(dataFrame) {
 
 Data are loaded. The survey has altogether 382 respondents and 19 variables, which are described below:
 
-```{r echo=TRUE, fig.align="center", fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
+```{r fig.align="center", fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
 
 dfalc<-read.csv(file="alccatfin.csv",header=TRUE)
 dfalc<-mutate_all(dfalc,as.factor)
@@ -148,7 +148,6 @@ scale_fill_manual(values = c("green","purple"))
 ```
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
-# Multiple correspondance analysis
 
 KreateTableOne = function(x, ...){
   t1 = tableone::CreateTableOne(data=x, ...)
@@ -217,7 +216,7 @@ The total maximum of Final Assignm
 
 ### <span style="color:purple">Summary and graphical overview</span>
 
-```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
+```{r fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
 library(settings)
 reset(options)
 options("scipen"=10, "digits"=2)
@@ -260,11 +259,11 @@ table3%>%
 
 Next, detailed summary statistics and box plots are printed.
 
-```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
+```{r fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
 library(settings)
 reset(options)
 options("scipen"=10, "digits"=2)
-tab1<-CreateTableOne(vars=colnames(dfalc) ,data=dfalc,factorVars = colnames(dfalc))
+tab1<-CreateTableOne(vars=colnames(dfalc) ,data=dfalc,factorVars = colnames(dfalc[-19]))
 summary(tab1)
 reset(options)
 ```
@@ -276,7 +275,7 @@ reset(options)
 
 
 Many of the variables have quite a few outliers meaning that the countries differ tremendeously with each other - as expected. For my own interest, and overall comparison of the countries with extreme values (max and min value countries of each variable according to the order of them) an additional table with an additional row with our own national values is printed.
-```{r echo=TRUE, fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
+```{r fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
 
 #print("Max and min value countries for female share in parliament")
 
