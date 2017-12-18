@@ -1,6 +1,8 @@
 ---
 title: "IODS-final"
-author: "Paula Bergman, December 2017, paula.bergman@helsinki.fi"
+author: "Paula Bergman, December 2017"
+name: "Paula Bergman"  
+affiliation: "paula.bergman@helsinki.fi"
 output:
   html_document:
     theme: cosmo
@@ -19,7 +21,7 @@ output:
   
 ***
   
-```{r child = "Part1.Rmd"}
+```{r child = "Chapterone.Rmd"}
 ```
 
 ***
