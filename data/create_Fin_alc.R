@@ -16,18 +16,18 @@ library(dplyr)
 
 #New script created. Name, date and short description written
 
-#Working directory set
+#Set working directory 
 setwd("~/GitHub/IODS-final/data")
 
-#Data read
+#Read datasets
 math <- as.data.frame(read.table('student-mat.csv', sep=';', header = TRUE))
 portugese <- as.data.frame(read.table('student-por.csv', sep=';', header = TRUE))
 
-#Structure and dimensions explored with glimpse() (even though already done week3)
+#Explore structure and dimensions with glimpse() to assure that the datasets are ok
 glimpse(math)#395 observations and 33 variables
 glimpse(portugese)#649 observations and 33 variables
 
-#Identifiers to be used in joining the tables according to my preliminary interest
+#Define identifiers to be used in joining the tables according to my preliminary interest
 join_by<-c("sex","age","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery")
 
 #Join the datasets based on the identifier columns
@@ -35,20 +35,21 @@ mathpor <- inner_join(math, portugese, by = join_by, suffix = c(".math", ".portu
 
 #Explore the structure and dimensions
 glimpse(mathpor)#434 observations and 57 variables
-#4.Merging results in numerous duplicated variables as can be seen
-colnames<-colnames(mathpor)
-colnames
 
-#5.Create a data frame with only the joined columns
+#Check colnames in the merged dataset
+colnames(mathpor)
+
+#Create a data frame with only the joined columns
 alc<-dplyr::select(mathpor,one_of(join_by))
-glimpse(alc)#382 observations and 13 variables
+glimpse(alc)#434 observations and 9 variables
 
-#5.To combine the "duplicated" answers firstly define the ones not used for joining
+#To combine the "duplicated" answers firstly define the ones not used for joining
 nonid_col<-colnames(math)[!colnames(math) %in% join_by]
-#5.Let's look at their names
+
+#Let's look at their names
 nonid_col
 
-#5.By for looping select two collumns from mathpor with the same name and
+#By for looping select two collumns from mathpor with the same name and
 #if the first is numeric calculate a rounded average of the two
 #if it in not numeric, then include the first of the two 
 
@@ -64,46 +65,79 @@ for(colnames in nonid_col) {
       }
 }
 
-#5.Checking the structure of the generated dataset
+#Checking the structure of the generated dataset
 glimpse(alc) #434 observations 33 variables
 
-write.csv(alc, file = "alc.csv", row.names = FALSE)
+##################################################################################
+##################################################################################
+##Several differently defined alcohol-usage variables created and investigated 
+##as well as several different variables and categorizing values tested to both meet 
+##my ideas of appropriate levels as well as assure the right numbers of observations 
+##in groups and any associations with each other
+##e.g. by plotting, tabling and using summaries (scripts not shown)
+##################################################################################
+##################################################################################
 
-alc<-read.csv(file="alc.csv", header=TRUE)
-
-
-#6.Create variable alc_use by averaging weekdays and weekends consuption
-alc <- mutate(alc, alc_useall = (Dalc + Walc) / 2)
-
-#Further, create variables for weekday and weekend use, I want to rename variables
-#to better keep track on what I am doing
-library(plyr)                    
-
-alc$alcALLsuht <- as.factor(ifelse(((alc$Dalc * 5 + alc$Walc* 2) / 7) < 3, 0, 1))
+#Create variables for weekday and weekend use
+#defining high use as being more than "low"(2) EITHER at weekdays OR at weekends
 alc$alclotW_or_WE<-as.factor(ifelse(alc$Dalc>2|alc$Walc>2,1,0))
 
-str(alc)
+#Categorize or re-categorize variables
 
-colnames(alc)
-
+#Age groups 16 or younger, 17, 18 or older(adult)
 summary(alc$age)
-alc$agecat<-cut(alc$age,breaks=c(0,16,17,Inf))
-alc$Meducat<-cut(alc$Medu, breaks=c(-1,2,3,4))
-alc$Feducat<-cut(alc$Fedu, breaks=c(-1,2,3,4))
+alc$agecat<-cut(alc$age,breaks=c(0,16,17,22))
+
+#Mother´s education none until 4th grade,5-9th grade,secondary, higher education 
+table(alc$Medu)
+alc$Meducat<-cut(alc$Medu, breaks=c(0,2,3,4),include.lowest = TRUE)
+table(alc$Meducat)#checking group sizes
+
+#Father´s education none until 4th grade,5-9th grade,secondary, higher education 
+table(alc$Fedu)
+alc$Feducat<-cut(alc$Fedu, breaks=c(0,2,3,4),include.lowest = TRUE)
+table(alc$Feducat)#checking group sizes
+
+#Family realtionships poor or bad, average, good or very good (I want to categorize
+#separately the "in-between-persons")
+table(alc$famrel)
 alc$Famrelcat<-cut(alc$famrel, breaks=c(0,2,3,5))
+table(alc$Famrelcat)
+
+#Going out very low-low, average, often-very often (I want to categorize
+#separately the "in-between-persons")
+table(alc$goout)
 alc$gooutcat<-cut(alc$goout, breaks=c(0,2,3,5))
-alc$alcweekcat<-cut(alc$Dalc, breaks=c(0,2,5))
-alc$alcendcat<-cut(alc$Walc, breaks=c(0,2,5))
+table(alc$gooutcat)
+
+#Health status very bad-bad, average, good-very good (I want to categorize
+#separately the "in-between-persons")
+table(alc$health)
 alc$healthcat<-cut(alc$health, breaks=c(0,2,3,5))
+table(alc$healthcat)
+
+#Failures either none or one or more 
+table(alc$failures)#(I assume that the majority do not fail and if so, it does not really matter how many times)
 alc$failurescat<-as.factor(ifelse(alc$failures>0,1,0))
-alc$absencescat<-cut(alc$absences,breaks=c(-Inf,1,6,Inf))
-alc$G3cat<-cut(alc$G3,breaks=c(-Inf,10,12,14,Inf))
+table(alc$failurescat)
 
+#Absences based on 25% and 75%, thus the ones hardly ever absent and the ones
+#often or very often absent differ from the "in between 1-6h people" (I assume)
+summary(alc$absences)
+alc$absencescat<-cut(alc$absences,breaks=c(0,1,6,45),include.lowest = TRUE)
+table(alc$absencescat)
 
+#Final grade based on approx 25%,50%,75%
+summary(alc$G3)
+alc$G3cat<-cut(alc$G3,breaks=c(0,10,12,14,18), include.lowest = TRUE)
+table(alc$G3cat)
+
+#Create a smaller dataset
 dfalc<-alc[c("sex","agecat","Pstatus","Meducat","Feducat","Mjob","Fjob","guardian","famsup",
                        "higher","romantic","activities","Famrelcat","gooutcat",
                        "healthcat","failurescat","absencescat", "G3cat","G3","alclotW_or_WE")]
 
+#Rename the variables to facilitate interpretation later on
 dfalc<-plyr::rename(dfalc, c("sex"="Gender",
                           "agecat"="Agegroup",
                           "Pstatus"="Parents together",
@@ -126,19 +160,23 @@ dfalc<-plyr::rename(dfalc, c("sex"="Gender",
                           "alclotW_or_WE"="High_alcohol"))
 
 
+#All variables except for the Final_Grade are factors, thus convert
 dfalc<-mutate_all(dfalc,as.factor)
+#And Final_Grade to numeric (a little clumsy)
 dfalc$Final_Grade<-as.numeric(dfalc$Final_Grade)
 
+#Check that the 
+str(dfalc)#434 and 19 factor and one numeric variables
 
-str(dfalc)
-table(is.na(dfalc))
+#Check for NA:s
+table(is.na(dfalc))#ok, no further worries on that
 
-#7. Save and check the created, joined and modified dataset 
+#Save and check the created, joined and modified dataset 
 write.csv(dfalc, file = "alccatfiso.csv", row.names = FALSE)
 
 alctest<-read.csv(file="alccatfiso.csv", header=TRUE)
 dim(alctest)#should be 434 obs and 20 variables: Correct!
-str(alctest)
+str(alctest)#3 integer values, most likely due to csv-format, remeber later!
 
 
 
