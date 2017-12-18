@@ -1,11 +1,15 @@
 ---
-title: "IODS-final"
+title: IODS-final
 author: "Paula Bergman, December 2017,paula.bergman@helsinki.fi"
 
 output:
   html_document:
     theme: cosmo
     toc: true
+    toc_float: true
+    number_sections: true
+    collapsed: false
+    smooth_scroll: false
     toc_depth: 4
     fig_caption: true
     fig_width: 6

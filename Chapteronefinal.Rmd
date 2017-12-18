@@ -16,27 +16,27 @@ Alcohol usage continues to be prevalent among youth. To implement preventive mea
 
 **Objective**
 
-This study aims to firstly describe current sociodemographic and performance factors and secondly to investigate the associations between them and high alcohol consumption using school reports and questionnaires from two Portuguese schools.
+This study aims to firstly, describe current social, demographic and performance factors and secondly, to investigate the associations between them and high alcohol consumption using school reports and questionnaires from two Portuguese schools.
 
 **Method**
 
-Descriptive results are generated stratified by gender, student performance group and high alcohol usage.A multiple correspondence analysis are used to analyze social, demographic, student and parental characteristics and high alcohol usage. 
+Descriptive results are generated stratified by gender, student performance groups and high alcohol usage.A multiple correspondence analysis is used to analyze social, demographic, student and parental characteristics and high alcohol usage. 
 
 **Results**
 
-The result from multiple correspondence analysis shows that there is association between high alcohol usage and social and demographich features. There are individuals who both share a high frequency of high alcohol consumptions and a tendency of having high frequencies for one or more class failures, lowest performance with regard to final grade, no willingness to higher eduction, older age, guardian being other than mother or father and going out frequently. In addition, they share a low frequency for mother큦 and father큦 higher eduction. Surprisingly, good health status defined by the respondent was quite frequent among the members having high alcohol usage in common.
+The result from multiple correspondence analysis shows that there is association between high alcohol usage and social and demographic features. There are individuals which  share both high frequency of high alcohol consumptions and high frequencies for one or more class failures, lowest performance with regard to final grade, no willingness to higher eduction, older age, guardian being other than mother or father and going out frequently. In addition, they share a low frequency for mother큦 and father큦 higher eduction. Surprisingly, good health status defined by the respondent him or herself was quite frequent among the group members having high alcohol usage in common.
 
 
 **Conclusion**
 
-There is an indication that some sociodemographic factors have joint effects. It is important to confirm the associations using advanced techniques, e.g. by applying theory of planned behavior to study the relations among personal beliefs, atttudes, behavioral intentions and behaviour and other individual as well as parental features in investigating the risk factors for high alcohol usage.
+There is an indication that some sociodemographic factors have joint effects. It is important to confirm the associations using advanced techniques, e.g. by applying theory of planned behavior to study the relations among personal beliefs, attitudes, behavioral intentions and behaviour and other individual as well as parental features to investigate the risk factors for high alcohol usage.
 
 
 ##<span style="color:purple">Introduction</span>
 
 
-Data including grades, demographic, social and school related features were collected in two Portuguese schools using school reports and questionnaires and stored as two separate datasets regarding performance in distinct subjects, namely Mathematics and Portuguese. The original data of the analysis in this study are freely available as a [zip file](https://archive.ics.uci.edu/ml/machine-learning-databases/00320/) with [metadata](https://archive.ics.uci.edu/ml/datasets/Student+Performance).For the purpose of this study the datasets were joined and edited according to [this R script](https://github.com/paap0/IODS-final/blob/master/data/create_Fin_alc.R). The variables not used for joining the two data sets were combined by averaging them. Variables were further categorized to decrease the total amount of variable categoris. This approach simultanously decreases the amount of information, but, on the other hand facilitates interpreation of the results. Instead of using labels for the created categories the exact ranges were used as well to help the interpretation.
-In addition, a binary *Alcohol_use* was created by using two separate five scaled (very low-very high) variables, namely alcohol use on weekdays and during weekends. A treshold value of more than low (2) was choses for the high alcohol usage *either* on weekdays *or* on weekends.Furthermore, the variables were renamed to easy and clarify the graphical display of the results.
+Data including grades, demographic, social and school related features were collected in two Portuguese schools using school reports and questionnaires and stored as two separate datasets regarding performance in distinct subjects, namely Mathematics and Portuguese. The original data of the analysis in this study are freely available as a [zip file](https://archive.ics.uci.edu/ml/machine-learning-databases/00320/) with [metadata](https://archive.ics.uci.edu/ml/datasets/Student+Performance).For the purpose of this study the datasets were joined and edited according to [this R script](https://github.com/paap0/IODS-final/blob/master/data/create_Fin_alc.R). The variables not used for joining the two data sets were combined by averaging them. Variables were further categorized to decrease the total amount of variable categories. This approach simultanously decreases the amount of information, but, on the other hand facilitates interpreation of the results. Instead of using labels for the created categories the exact ranges were used to facilitate the interpretation.
+In addition, a binary *Alcohol_use* was created by using two separate five scaled (very low-very high) variables, namely alcohol use on weekdays and during weekends. A treshold value of more than low (2) was choses for the high alcohol usage *either* on weekdays *or* on weekends.Furthermore, the variables were renamed to ease and clarify the graphical display of the results.
 
 
 
@@ -98,7 +98,7 @@ summaryKable <- function(dataFrame) {
 
 ### <span style="color:purple">Structure of the dataset</span>
 
-Data are loaded. The final data set includes 434 respondents and 19 factorial and one quantitative variable. The names of the variables and their explanations are listed below.
+Data are loaded. The final data set includes 434 respondents and 19 factorial and one supplementary, quantitative variable. The names of the variables and their explanations are listed below.
 
 
 
@@ -124,6 +124,9 @@ kable(om, title="Basic elements of the dataset","html") %>%
 ```
 
 ## <span style="color:purple">Descriptive results</span>
+
+Firstly, a detailed variable summary is presented and thereafter the variables are visualized firstly by barplots stratified by gender.Finally, summary tables are created using three different strata: gender, performance group and alcohol use to capture interesting relations.
+
 
 ### <span style="color:purple">Overall summary</span>
  
@@ -191,7 +194,7 @@ for(i in colNames){
 
 &nbsp;
 
-Almost everyone, 95% has positive attitude towards higher eduction. Again, it seems even more common for females. In relationship are 32%. Females seem to be a little less active than males: altogether 47% have no extracurricular activities. Family relationships are mainly described as good or very good (76%), which is expected these data coming from a Mediterranian country with high family values. 
+Almost everyone, 95% has positive attitude towards higher eduction. Again, it seems even more common for females. In romantic relationship are 32% of the respondents. Females seem to be a little less active than males: altogether 47% have no extracurricular activities. Family relationships are mainly described as good or very good (76%), which is expected these data coming from a Mediterranian country with high family values. 
 
 ```{r fig.height=3, fig.width=4, fig.align= "center", message=FALSE, warning=FALSE}
 #lets plot  
@@ -208,7 +211,7 @@ for(i in colNames){
 
 &nbsp;
 
-Altogether 35% are going out frequently, 33% not often but not rarely, and 32% quite rarely. Health status is defined as very bad or bad as often as in almost every fourth respondent. Very good or good health status is very common, though (55%). A little more than every tenth student has one or more class failures whereas 87% have none. School absences are within 6 or less hours in 77% of the cases. 
+Altogether 35% are going out frequently, 33% not often but not rarely, and 32% quite rarely. Health status is defined as very bad or bad as often as by almost every fourth respondent. Very good or good health status is very common, though (55%). A little more than every tenth student has one or more class failures whereas 87% have none. School absences are within 6 or less hours in 77% of the cases. 
 
 
 ```{r fig.height=3, fig.width=4, fig.align= "center", message=FALSE, warning=FALSE}
@@ -226,7 +229,7 @@ for(i in colNames){
 
 &nbsp;
 
-Performance groups represent approximately the lowest, middle low, middle high and highest groups. Very low or low alcohol consumers both at weekdays and during weekends are 60% or the respondents.However, there seems to be an expected trend towards males drinking more.
+Performance groups represent approximately the lowest, middle low, middle high and highest groups. Very low or low alcohol consumers both at weekdays and during weekends represent 60% of the respondents.However, there seems to be an expected trend towards males drinking more.
 
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
@@ -248,43 +251,8 @@ table3 = KreateTableOne(x=dfalc, strata="High_alcohol")
 
 
 
-Visually clear and interesting explorations of the variables of interest in the data, from the point of view of your research question. Include interpretations of the distributions and relationships of the variables. Use captions to draw the reader's focus on the interesting parts of your tables and graphics. (max 8 points)
 
 
-The variables are visualized firstly by barplots stratified by gender. Thereafter, one crude variable summary as well as summary tables are created using three different strata: gender, performance group and alcohol use.
-
-
-Brief description of the method(s) you are using in your own words (max 3 points)
-
-Presentation of the results of your analysis including visualizations and summaries and a thorough interpretation of the results including a validation analysis of the method. (max 16 points)
-
-Conclusions and discussion (max 2 points)
-
-An 'abstract' at the beginning of the page with a summary of your analysis (max 2 points)
-
-
-
-Brief description of the "research question" you are exploring, possibly including your hypothesis (max 2 points)
-
-A link to your data wrangling script. See the general instructions. (max 5 points)
-
-
-Description of your data and its variables. Where is the data from, what does it relate to, what do the variables represent, what has been done to the data before analysis? (max 2 points)
-
-
-Visually clear and interesting explorations of the variables of interest in the data, from the point of view of your research question. Include interpretations of the distributions and relationships of the variables. Use captions to draw the reader's focus on the interesting parts of your tables and graphics. (max 8 points)
-
-
-
-
-Presentation of the results of your analysis including visualizations and summaries and a thorough interpretation of the results including a validation analysis of the method. (max 16 points)
-
-
-Conclusions and discussion (max 2 points)
-
-An 'abstract' at the beginning of the page with a summary of your analysis (max 2 points)
-
-The total maximum of Final Assignm
 
 
 &nbsp;
@@ -302,7 +270,7 @@ table1%>%
 ```
 &nbsp;
 
-The before assumed trend for females having a mother with low educational level is not statistically significant. Howeverm there are significant gender-related differences between mother큦 working place: females seem to have mothers staying at home more whereas the proportion of mothers as teachers is twice that for males than females. Females indeed have more family support and they are almost unexeptionally willing to participate in higher eduction. Instead, males are more active. Females judge their health status less good (bordenline significant). And, finally, 31% females versus 50% males consume a lot of alcohol either during weekdays or weekends.
+The before assumed trend for females having a mother with low educational level is not statistically significant. However, there are significant gender-related differences between mother큦 working place: females seem to have mothers staying at home more, whereas the proportion of mothers as teachers is twice that for males than females. Females indeed have more family support and they are almost unexeptionally willing to participate in higher eduction. Instead, males are more active. Females judge their health status less good (bordenline significant). And, finally, 31% of the females versus 50% of the males consume a lot of alcohol either during weekdays or weekends.
 
 s)
 
@@ -336,7 +304,7 @@ table3%>%
 ```
 &nbsp;
 
-Interesting relations among the variables can be captured as simply as by using a stratified table. Males drink more than females, as do the younger ones as well.Father큦 job affects alcohol consumption as well, but mother큦 job, guardian or family relationships seem not to. Going out is associated with alcohol usage, but health group seems not to. Class failures are more common among the heavy alcohol users, as well as the highest numbers of school absences. Mean final grade differs significantly between the groups (mean(sd)): 11.74(3.43) versus 11.06(3.04).
+Males drink more than females, as do the younger ones as well.Father큦 job affects alcohol consumption, but mother큦 job, student큦 guardian or family relationships seem not to. Going out is associated with alcohol usage, but health group seems not to. Class failures are more common among the heavy alcohol users, as well as the highest numbers of school absences. Mean final grade differs significantly between the groups (mean(sd)): 11.74(3.43) versus 11.06(3.04).
 &nbsp;
 
 
@@ -344,9 +312,7 @@ Interesting relations among the variables can be captured as simply as by using 
 
 ###<span style="color:purple">Methodology</span>
 
-Simple form of analysing categorical data is cross-tabulation.  Correspondence analysis is an extention of contingency table data and a generalization of principal component approach. It can be used as a multivariate descriptive data analytic technique and to reduce data dimensionality. Furthermore, the graphical interpretation of the data is a useful tool in exploratory research.
-
-Multiple correspondence analysis (MCA) is an extension of correspondence analysis and allows to investigate the pattern of relationships of several categorical dependent variables simultaneously. Applying multiple correspondence analysis helps to reduce the interaction parameters. Using the results of a MCA, it is possible to describe the structure of all the categorical variables included. The computational graphical representations covers basically every bit of information in the data by mapping each variable/individual of analysis as a point in a low-dimensional space. 
+Simple form of analysing categorical data is cross-tabulation.  Correspondence analysis is an extention of contingency table data and a generalization of principal component approach. Multiple correspondence analysis (MCA) is an extension of correspondence analysis and allows to investigate the pattern of relationships of several categorical dependent variables simultaneously. Applying multiple correspondence analysis helps to reduce the interaction parameters. Using the results of a MCA, it is possible to describe the structure of all the categorical variables included. The computational graphical representations covers basically every bit of information in the data by mapping each variable/individual of analysis as a point in a low-dimensional space. 
 
 To encompass, MCA has several features that distinguish it from other techniques of data analysis. It simplifies large and complex data and provides a detailed description of practically every bit of information in the data, yielding a simple, yet exhaustive scrutiny of relationships occuring by multiple pair wise comparisons. Graphically, dual displays are produced to facilitate interpretation.
 
@@ -355,7 +321,7 @@ Basically, the first step is that a crosstabulated frequency table is standardiz
 
 ### <span style="color:purple">Analysis</span>
 
-MCA() function that come in the package "FactoMineR" by Francois Husson, Julie Josse, Sebastien Le, and Jeremy Mazet. Additionally, package "factoextra" is used. MCA is carried out.
+MCA() function that come in the package "FactoMineR" by Francois Husson, Julie Josse, Sebastien Le, and Jeremy Mazet. Additionally, package "factoextra" is used to beautifully visualize multiple correspondence analysis.
 
 ```{r}
 res.mca = MCA(dfalc,quanti.sup=19, graph = FALSE)
@@ -375,6 +341,7 @@ print(res_mca)
 ### <span style="color:purple">MCA summary</span>
 
 For the variables a correlation ratio (squared) between it and each dimension is given (eta<sup>^2</sup>) enabling the plotting of the variables. The v-test in the summary follows a gaussian distribution referring to the category having a coordinate significantly different from zero.
+
 ```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE, warnings=FALSE}
 summary(res_mca,abbrev=TRUE)
 ```
@@ -396,7 +363,7 @@ eig.val <- get_eigenvalue(res_mca)
 head(eig.val,n=10)
 ```
 
-To visualize the percentage of inertia explained by each MCA dimensions:
+To visualize the percentage of inertia explained by each MCA dimension:
 ```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE}
 eig.val <- res_mca$eig
 barplot(eig.val[, 2], 
@@ -417,7 +384,7 @@ The first two express 14% of the total dataset variance meaning that 14% of the 
 
 ###<span style="color:purple">Graphical representation of individuals and variable categories</span>
 
-To further clarify the MCA results graphical representation is used. Firstly, there is biplot showing the global pattern within the data. Observations are represented by blue points and variables by red triangles and labels. The distance between any observation points or variable points gives a measure of their similarity (or dissimilarity). Similar types of individuals are close on the map, as well as similar kinds of variables.
+To further clarify the MCA results graphical representation is used. Firstly, a biplot showing the global pattern within the data is created. Observations are represented by blue points and variables by red triangles and labels. The distance between any observation points or variable points gives a measure of their similarity (or dissimilarity). Similar types of individuals are close on the map, as well as similar kinds of variables.
 
 
 ```{r fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
@@ -430,7 +397,7 @@ fviz_mca_biplot(res_mca,
 
 ###<span style="color:purple">Graphical representation of variables</span>
 
-Variable categories related results can be extracted separately and provides information on the coordinates, the cos2 and the contribution of variable categories:
+Variable categories related results can be extracted separately to provide information for the coordinates, the cos2 and the contribution of variable categories:
 
 -  var$coord: coordinates of variables to create a scatter plot
 
@@ -533,7 +500,7 @@ fviz_cos2(res_mca, n=10,choice = "var", axes = 1:2,top=12)
 
 ###<span style="color:purple">Grouped biplots</span>
 
-Indibiduals can be coloured by groups and a concentration ellipse can be added around each group.
+Individuals can be coloured by groups and a concentration ellipse can be added around each group.
 
 ####<span style="color:purple">Grouped biplots:**Performance group**</span>
  
@@ -637,7 +604,7 @@ and low frequencies for
 -  <span style="color:orange">Mother's high educational status</span>
 -  <span style="color:orange">Young age</span>
 -  <span style="color:orange">Father's high educational status</span>
--  <span style="color:orange">Low alcohol consumption</span>
+-  <span style="color:orange">**Low alcohol consumption**</span>
 -  <span style="color:orange">Medium low performance</span>
 
 
@@ -690,6 +657,10 @@ and low frequencies for
 -  <span style="color:orange">Lowest performance group</span>
 
 
+##<span style="color:purple">Conclusion</span>
+
+The aim of this study was to scrutinize the multidimensional data into a more comprehensible, lower dimensional structure and to reveal some association between different types of respondents. However, the reduction was not completely suitably acchieved as the inertia explained was low and the observations were very scattered.
+However, there is an indication that some sociodemographic factors have joint effects. It is important to confirm the associations using advanced techniques, e.g. by applying theory of planned behavior to study the relations among personal beliefs, attitudes, behavioral intentions and behaviour and other individual as well as parental features to investigate the risk factors for high alcohol usage. Future investigations need to be done to identify those variables that show significant relationships and to take them forward for further analysis. 
 
 
 References: 
