@@ -17,11 +17,14 @@ library(dplyr)
 #New script created. Name, date and short description written
 
 #Set working directory 
-setwd("~/GitHub/IODS-final/data")
+setwd("~/GitHub/IODS-project/data")
 
 #Read datasets
 math <- as.data.frame(read.table('student-mat.csv', sep=';', header = TRUE))
 portugese <- as.data.frame(read.table('student-por.csv', sep=';', header = TRUE))
+
+#Set working directory 
+setwd("~/GitHub/IODS-final/data")
 
 #Explore structure and dimensions with glimpse() to assure that the datasets are ok
 glimpse(math)#395 observations and 33 variables

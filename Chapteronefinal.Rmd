@@ -1,0 +1,856 @@
+
+---
+title: "Chapterone"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+---
+
+## <span style="color:purple">IODS-final</span>
+
+**Background**
+
+Alcohol usage continues to be prevalent among youth. To implement preventive measures the sociodemographic, individual and parental factors behind problem behavior should be understood better. 
+
+**Objective**
+
+This study aims to firstly describe current sociodemographic and performance factors and secondly to investigate the associations between them and high alcohol consumption using school reports and questionnaires from two Portuguese schools.
+
+
+**Method**
+
+Descriptive results are generated stratified by gender, student performance group and high alcohol usage.A multiple correspondence analysis are used to analyze social, demographic, student and parental characteristics and high alcohol usage. 
+
+**Results**
+
+The result from multiple correspondence analysis shows that there is association between high alcohol usage and social and demographich features. There are individuals who both share a high frequency of high alcohol consumptions and a tendency of having high frequencies for one or more class failures, lowest performance with regard to final grade, no willingness to higher eduction, older age, guardian being other than mother or father and going out frequently. In addition, they share a low frequency for mother큦 and father큦 higher eduction. Surprisingly, good health status defined by the respondent was quite frequent among the members having high alcohol usage in common.
+
+
+**Conclusion**
+
+There is an indication that some sociodemographic factors have joint effects. It is important to confirm the associations using advanced techniques, e.g. by applying theory of planned behavior to study the relations among personal beliefs, atttudes, behavioral intentions and behaviour and other individual as well as parental features in investigating the risk factors for high alcohol usage.
+
+
+
+### <span style="color:purple">Introduction</span>
+
+
+Data including grades, demographic, social and school related features were collected in two Portuguese schools using school reports and questionnaires and stored as two separate datasets regarding performance in distinct subjects, namely Mathematics and Portuguese. The original data of the analysis in this study are freely available as a [zip file](https://archive.ics.uci.edu/ml/machine-learning-databases/00320/) with [metadata](https://archive.ics.uci.edu/ml/datasets/Student+Performance).For the purpose of this study the datasets were joined and edited according to [this R script](https://github.com/paap0/IODS-final/blob/master/data/create_Fin_alc.R). The variables not used for joining the two data sets were combined by averaging them. Variables were further categorized to decrease the total amount of variable categoris. This approach simultanously decreases the amount of information, but, on the other hand facilitates interpreation of the results. Instead of using labels for the created categories the exact ranges were used as well to help the interpretation of the graphical display. 
+In addition, a binary *Alcohol_use* was created by using two separate five scaled (very low-very high) variables, namely alcohol use on weekdays and during weekends. A treshold value of more than low (2) was choses for the high alcohol usage *either* on weekdays *or* on weekends.Furthermore, the variables were renamed.
+
+
+
+```{r message=FALSE, warning=FALSE, cache=FALSE, include=FALSE}
+#rm(list = ls())
+setwd("~/GitHub/IODS-final")
+# Define packages required by this script.
+library(dplyr)
+library(car)
+library(ggplot2)
+library(stargazer)
+library(GGally)
+library(tidyverse)
+library(corrplot)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(tableone)
+library(dplyr)
+library(knitr)
+library(DT)
+library(xtable)
+library(factoextra)
+library(FactoMineR)
+library(Factoshiny)
+library(FactoInvestigate)
+library(kableExtra)
+library(corrplot)
+library(plotly)
+library(dplyr)
+
+summaryKable <- function(dataFrame) {
+  require(dplyr)
+  require(stringr)
+  vect <- sapply(dataFrame, function(x) {
+    if(!is.factor(x)) { 
+      a <- c(quantile(x, probs = c(0,0.25,0.5), na.rm = T), 
+             mean(x, na.rm = T),
+             quantile(x, probs = c(0.75,1), na.rm = T)) %>% 
+        formatC(format = "f", digits = 3) %>% 
+        unname() 
+    }
+    
+    if(is.factor(x)) {
+      a <- sapply(1:5, function(y) 
+            sum(x == levels(x)[y]) %>% 
+            paste(levels(x)[y],. , sep = ":\ ")) 
+      a <- c("Levels", a) %>% str_replace_all("NA: NA", "--")
+    }
+    
+    return(a)
+  })
+  row.names(vect) <- c("Min", "1st Q", "Median", "Mean", "3rd Q", "Max")
+  return(t(vect))
+}
+
+```
+
+
+#### <span style="color:purple">Structure of the dataset</span>
+
+Data are loaded. The final data set includes 434 respondents and 19 factorial and one quantitative variable. The names of the variables and their explanations are listed below.
+
+
+
+```{r fig.align="center", fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
+
+dfalc<-read.csv(file="alccatfiso.csv",header=TRUE)
+dfalc<-mutate_all(dfalc,as.factor)
+dfalc$Final_Grade<-as.numeric(dfalc$Final_Grade)
+
+Label<-as.matrix(colnames(dfalc))
+
+Variable<-c("Gender", "Age categorized",  "Parent's cohabitation status","Mother큦 educational status categorized (less than secondary education, secondary education, higher education", "Father큦 educational status categorized (less than secondary education, secondary education, higher education", "Mother큦 job (teacher, health care, civil services, at home, other)", "Father큦 job (teacher, health care, civil services, at home, other)", "Student큦 guardian: mother, father, other", "Family educational support", "Willingness to take higher education", "Relationship", "Extra-cullicular activities", "Familial relationships categorized (very bad to bad, average, good to excellent)","Going out with friends categorized (very low or low, average, high or very high)","Health status categorized (very bad to bad, average, good to very good)", "Amount of failed classes: none/more than one)", "Amount of school absences one or less, 2-6hours, more than 6 hours", "Final grade categorized by quartiles", "Final grade", "Alcohol consumption more than two either during the week or at weekends")
+
+Level<-as.matrix(dfalc %>% sapply(levels))
+
+om<- data.frame(Label,Variable,Level)
+
+om$Level[3]<-"A(Alone),T(Together)"
+om$Level[19]<-"numeric from 0 to 20"
+rownames(om)<-NULL
+kable(om, title="Basic elements of the dataset","html") %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+### <span style="color:purple">Descriptive results</span>
+
+
+#### <span style="color:purple">Graphical overview</span>
+
+```{r fig.height=3, fig.width=4, fig.align= "center", message=FALSE, warning=FALSE}
+#lets plot  
+#density plots for numerical variables7
+colNames <- names(dfalc)[2:ncol(dfalc)]
+for(i in colNames){
+    plt<-ggplot(dfalc, aes_string(x=i)) + 
+      geom_bar(aes(fill = Gender), position = "dodge", stat="count")+
+      scale_fill_manual(values = c("green","purple"))
+      print(plt)
+}
+
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+KreateTableOne = function(x, ...){
+  t1 = tableone::CreateTableOne(data=x, ...)
+  t2 = print(t1, quote=TRUE)
+  rownames(t2) = gsub(pattern='\\"', replacement='', rownames(t2))
+  colnames(t2) = gsub(pattern='\\"', replacement='', colnames(t2))
+  return(t2)
+}
+
+table1 = KreateTableOne(x=dfalc, strata="Gender")
+
+table2 = KreateTableOne(x=dfalc, strata="Performancegroup")
+
+table3 = KreateTableOne(x=dfalc, strata="High_alcohol")
+```
+
+These data summarize the answers given by different categories of people to the following question : <span style="color:purple">**according to you, what are the reasons that can make hesitate a woman or a couple to have children?**</sup>
+
+The goal is to discover interesting relations among the variables. 
+
+
+
+
+
+Description of your data and its variables. Where is the data from, what does it relate to, what do the variables represent, what has been done to the data before analysis? (max 2 points)
+
+Visually clear and interesting explorations of the variables of interest in the data, from the point of view of your research question. Include interpretations of the distributions and relationships of the variables. Use captions to draw the reader's focus on the interesting parts of your tables and graphics. (max 8 points)
+
+###
+The variables are visualized firstly by barplots stratified by gender. Thereafter, one crude variable summary as well as summary tables are created using three different strata: gender, performance group and alcohol use.
+###
+
+Brief description of the method(s) you are using in your own words (max 3 points)
+
+Presentation of the results of your analysis including visualizations and summaries and a thorough interpretation of the results including a validation analysis of the method. (max 16 points)
+
+Conclusions and discussion (max 2 points)
+
+An 'abstract' at the beginning of the page with a summary of your analysis (max 2 points)
+
+
+
+Brief description of the "research question" you are exploring, possibly including your hypothesis (max 2 points)
+
+A link to your data wrangling script. See the general instructions. (max 5 points)
+
+
+Description of your data and its variables. Where is the data from, what does it relate to, what do the variables represent, what has been done to the data before analysis? (max 2 points)
+
+
+Visually clear and interesting explorations of the variables of interest in the data, from the point of view of your research question. Include interpretations of the distributions and relationships of the variables. Use captions to draw the reader's focus on the interesting parts of your tables and graphics. (max 8 points)
+
+
+
+
+Presentation of the results of your analysis including visualizations and summaries and a thorough interpretation of the results including a validation analysis of the method. (max 16 points)
+
+
+Conclusions and discussion (max 2 points)
+
+An 'abstract' at the beginning of the page with a summary of your analysis (max 2 points)
+
+The total maximum of Final Assignm
+
+#### <span style="color:purple">Overall summary</span>
+ 
+&nbsp;
+
+```{r fig.align="center", fig.width=10, message=FALSE, warning=FALSE}
+library(settings)
+reset(options)
+options("scipen"=10, "digits"=2)
+tab1<-CreateTableOne(vars=colnames(dfalc) ,data=dfalc,factorVars = colnames(dfalc[-19]))
+summary(tab1)
+reset(options)
+```
+&nbsp;
+
+#### <span style="color:purple">Summary stratified by **gender**</span>
+&nbsp;
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#knitr::kable(table1)
+table1%>%
+    kable("html", align = "rrr", caption = "Data variable summary stratified by GENDER") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
+&nbsp;
+
+#### <span style="color:purple">Summary stratified by **final grade**</span>
+&nbsp;
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#knitr::kable(table2)
+table2%>%
+    kable("html", align = "rrr", caption = "Data variable summary stratified by FINAL GRADE") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
+&nbsp;
+
+#### <span style="color:purple">Summary stratified by **alcohol consumption**</span>
+
+&nbsp;
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#knitr::kable(table3)
+table3%>%
+    kable("html", align = "rrr", caption = "Data variable summary stratified by ALCOHOL CONSUMPTION") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) %>% 
+  scroll_box(height = "160px" )
+
+```
+&nbsp;
+
+###<span style="color:purple">Multiple correspondence analysis</span>
+
+####<span style="color:purple">Methodology</span>
+
+Simple form of analysing categorical data is cross-tabulation.  Correspondence analysis is also a multivariate descriptive data analytic technique and can be used in dimensionality reducation. Furthermore, the graphical interpretation of the data could be useful tool in an exploratory research and the reduction of the level of the associations between the investigated parameters. Correspondence analysis is a generalization of principal component approach for normal and contingency table data.
+
+
+Multiple correspondence analysis (MCA) is an extension of correspondence analysis and allows to investigate the pattern of relationships of several categorical dependent variables. Applying multiple correspondence analysis helps to reduce the interaction parameters. Using the results of a MCA, it is possible to describe the structure of all the categorical variables included. The computational graphical representations covers basically every bit of information in the data by mapping each variable/individual of analysis as a point in a low-dimensional space. 
+
+To encompass, MCA has several features that distinguish it from other techniques of data analysis. It simplifies large and complex data and provides a detailed description of practically every bit of information in the data, yielding a simple, yet exhaustive scrutiny of relationships occuring by multiple pair wise comparisons. Graphically, dual displays are produced to facilitate interpretation.
+
+Basically, the first step is that a crosstabulated frequency table is standardized to yield relative frequencies across the cells to sum up to 1.0. The aim of a MCA analysis is to represent the entries in the table of relative frequencies in terms of the distances between individual rows and/or columns in a low-dimensional space.
+
+
+
+Next, detailed summary statistics and box plots are printed.
+
+
+
+
+### <span style="color:purple">Values from Finland with extreme value countries</span>
+
+
+Many of the variables have quite a few outliers meaning that the countries differ tremendeously with each other - as expected. For my own interest, and overall comparison of the countries with extreme values (max and min value countries of each variable according to the order of them) an additional table with an additional row with our own national values is printed.
+
+
+
+
+### <span style="color:purple">Variable correlations</span>
+
+&nbsp;
+
+The only variable that seems normally distributed is expected years of shooling.
+From the variable connectivity, it can be captured that there are several relevant correlations apart from labour force participation ratio and female share in parliament. Not unexpectedly, life expectancy is negatively correlated with maternal mortality and adolescent birth rate. On the contrary, it is positively correlated with expected years of education and general income.  Expected years of education also has negative correlations, e.g. with maternal mortality. 
+To encompass, it seems basically that the more educated women there is, the better the longevity, the higher the overall educational expectancy and general income and lower maternal mortality and adolescent birth rate, and, interestingly, two variables (lab.f_m and parl.prop) are only weakly correlated with any of the other variables.
+
+
+### <span style="color:purple">MCA</span>
+
+
+```{r}
+res.mca = MCA(dfalc,quanti.sup=19, graph = FALSE)
+#Investigate(res.mca)
+#res.shiny=MCAshiny(dfalc)
+```
+
+
+#### <span style="color:purple">Tea data and My tea data</span>
+
+MCA() function that come in the package "FactoMineR" by Francois Husson, Julie Josse, Sebastien Le, and Jeremy Mazet. Additionally, package "factoextra" is used.
+
+#### <span style="color:purple">My tea data summary and graphical overview</span>
+
+
+There seems to be some variation in each of the variables. The category with the lowest frequency seems to be in the "How"-variable (other; only 9 observations), however, not too low to potentially distort MCA analysis. 
+Age distribution shows, that the young ones are the largest group having answered the questionnaire and among them females are overrepresented. On the other hand, in the group of 25-34 year olds there are a lot more males than there are females. Altogether, there are more female observations than there are males. However, there are respondents in each age group. Surprisingly, as I assume this dataset to originate from Great Brittain, most respondents have reported to use either tea bags or tea bags and unpacked tea, both. A minority uses unpackaged tea, which I would have thought to be "the right Brittish manner". Most drink their tea alone, some use milk, a few lemon. There is no honey option at all, and sugar variable is recorded as a separate variable and is not used in this analysis.  Most buy their tea in a chain store, and men visit tea shops more often than women - again surprising phenomena to me. And finally, tea is mostly drank outside work.
+
+#### <span style="color:purple">Multiple Correspondence Analysis</span>
+
+Next MCA analysis on the chosen tea data is carried out. 
+
+The output of the MCA() function is a list including :
+
+```{r fig.align="center", message=FALSE, warning=FALSE, warnings=FALSE}
+res_mca <- MCA(dfalc, quanti.sup=19,graph = FALSE)
+print(res_mca)
+summary(res_mca, nbelements = Inf, ncp = 2, file = "summary_mca.xls")
+```
+
+There are 382 individuals and 55 variable categories. Additionally, there is one quantitative variable, which is considered illustrative.
+
+and looks like this for the chosen tea-dataset. The v-test in the summary follows a gaussian distribution referring to the category having a coordinate significantly different from zero.
+
+For the variables a correlation ratio (squared) between it and each dimension is given (eta<sup>^2</sup>) enabling the plotting of the variables.
+```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE, warnings=FALSE}
+summary(res_mca)
+```
+
+The dimdesc function aims to help to interpret the dimensions. It allows to see which variables the axes are the most linked to, i.e. which categories describe the best each axis.  
+
+```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE, warnings=FALSE}
+dimdesc(res_mca,axes=1:2,proba=0.05)
+```
+
+##### <span style="color:purple">Scree plot</span>
+
+
+To visualize the percentage of inertia explained by each MCA dimensions:
+```{r echo=TRUE, fig.align="center", message=FALSE, warning=FALSE}
+eig.val <- res_mca$eig
+barplot(eig.val[, 2], 
+        names.arg = 1:nrow(eig.val), 
+        main = "Variances Explained by Dimensions (%)",
+        xlab = "Principal Dimensions",
+        ylab = "Percentage of variances",
+        col ="steelblue")
+# Add connected line segments to the plot
+lines(x = 1:nrow(eig.val), eig.val[, 2], 
+      type = "b", pch = 19, col = "red")
+```
+
+Eigenvalues can be used to determine the number of axes to retain. There is no "rule of thumb" to choose the number of dimensions to keep for the data interpretation. It depends on the research question and the researcher's need. For example, if you are satisfied with 80% of the total variances explained then use the number of dimensions necessary to achieve that.
+
+The inertia of the first and second dimensions suggest the number of dimensions that should be studied. The first two express 14% of the total dataset variance meaning that 14% of the individuals or variables total variability is explained by the plane. This is disappointedly a very small percentage. 
+
+An estimation of the right number of axis to interpret suggests to focus on the first 10. These axis present an amount of inertia greater than those obtained by the 0.95-quantile of random distributions meaning that only the first 10 axis are carrying a real information. 
+
+The proportion of variances retained by the different dimensions (axes) can be extracted using the function get_eigenvalue() as follow:
+
+```{r fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+eig.val <- get_eigenvalue(res_mca)
+head(eig.val,n=10)
+```
+
+##### <span style="color:purple">Description of the first plane</span>
+
+
+To further clarify the MCA results graphical representation is used. Firstly, there is biplot showing the global pattern within the data. Observations are represented by blue points and variables by red triangles and labels. The distance between any observation points or variable points gives a measure of their similarity (or dissimilarity). Similar types of individuals are close on the map, as well as similar kinds of variables.
+The function fviz_mca_biplot() [factoextra package] is used to draw the biplot of individuals and variable categories:
+
+
+```{r fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+fviz_mca_biplot(res_mca, 
+               repel = TRUE, # Avoid text overlapping (slow if many point)
+               ggtheme = theme_minimal())
+```
+
+
+##### <span style="color:purple">Biplots</span>
+
+Next, a plot is created to visualize the correlation between variables and MCA principal dimensions:
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+fviz_mca_var(res_mca, choice = "mca.cor", 
+            repel = TRUE, # Avoid text overlapping (slow)
+            ggtheme = theme_minimal())
+```
+
+The plot should help to identify variables that are the most correlated with each dimension. The squared correlations between variables and the dimensions are used as coordinates.
+
+The function get_mca_var() [in factoextra] is used to extract the results for variable categories. This function returns a list containing the coordinates, the cos2 and the contribution of variable categories:
+
+var$coord: coordinates of variables to create a scatter plot
+var$cos2: represents the quality of the representation for variables on the factor map.
+var$contrib: contains the contributions (in percentage) of the variables to the definition of the dimensions.
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+var <- get_mca_var(res_mca)
+var
+```
+To visualize the correlation between variables and MCA principal dimensions, type this:
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+
+
+fviz_mca_var(res.mca, choice = "mca.cor", 
+            repel = TRUE, # Avoid text overlapping (slow)
+            ggtheme = theme_minimal())
+```
+
+
+The plot above helps to identify variables that are the most correlated with each dimension. The squared correlations between variables and the dimensions are used as coordinates.
+
+It can be seen that, the variables Diarrhae, Abdominals and Fever are the most correlated with dimension 1. Similarly, the variables Courgette and Potato are the most correlated with dimension 2.
+
+
+Use the function fviz_mca_var() [in factoextra] to visualize only variable categories:
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+
+
+fviz_mca_var(res_mca, 
+             repel = TRUE, # Avoid text overlapping (slow)
+             ggtheme = theme_minimal())
+```
+
+
+
+It's possible to change the color and the shape of the variable points using the arguments col.var and shape.var as follow:
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+
+
+fviz_mca_var(res_mca, col.var="black", shape.var = 15,
+             repel = TRUE)
+```
+
+
+Variable categories with a similar profile are grouped together.
+Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).
+The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+
+If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+It's possible to color variable categories by their cos2 values using the argument col.var = "cos2". This produces a gradient colors, which can be customized using the argument gradient.cols. For instance, gradient.cols = c("white", "blue", "red") means that:
+
+variable categories with low cos2 values will be colored in "white"
+variable categories with mid cos2 values will be colored in "blue"
+variable categories with high cos2 values will be colored in "red"
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=10, message=FALSE, warning=FALSE}
+# Color by cos2 values: quality on the factor map
+fviz_mca_var(res_mca, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # Avoid text overlapping
+             ggtheme = theme_minimal())
+              
+```
+
+And finally, as is described in the exercise instructions: "The typical graphs show the original classes of the discrete variables on the same "map", making it possible to reveal connections (correspondences) between different things that would be quite impossible to see from the corresponding cross tables (too many numbers!)."
+
+
+Note that, it's also possible to change the transparency of the variable categories according to their cos2 values using the option alpha.var = "cos2". For example, type this:
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=10, message=FALSE, warning=FALSE}
+# Change the transparency by cos2 values
+fviz_mca_var(res_mca, alpha.var="cos2",
+             repel = TRUE,
+             ggtheme = theme_minimal(),selectMod="cos2 10")
+```
+ 
+ 
+ You can visualize the cos2 of row categories on all the dimensions using the corrplot package:
+```{r echo=TRUE, fig.align="center", fig.height=14, fig.width=6, message=FALSE, warning=FALSE}
+library("corrplot")
+corrplot(var$cos2, is.corr=FALSE)
+
+```
+ 
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("ind"), habillage = "quali")
+```
+
+
+It's also possible to create a bar plot of variable cos2 using the function fviz_cos2()[in factoextra]:
+
+```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+# Cos2 of variable categories on Dim.1 and Dim.2
+fviz_cos2(res_mca, n=10,choice = "var", axes = 1:2,top=10)
+```
+
+The function fviz_contrib() [factoextra package] can be used to draw a bar plot of the contribution of variable categories. The R code below shows the top 15 variable categories contributing to the dimensions:
+
+```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+# Contributions of rows to dimension 1
+fviz_contrib(res_mca, choice = "var", axes = 1, top = 15)
+# Contributions of rows to dimension 2
+fviz_contrib(res_mca, choice = "var", axes = 2, top = 15)
+```
+
+
+The total contributions to dimension 1 and 2 are obtained as follow:
+
+# Total contribution to dimension 1 and 2
+fviz_contrib(res.mca, choice = "var", axes = 1:2, top = 15)
+The red dashed line on the graph above indicates the expected average value, If the contributions were uniform. The calculation of the expected contribution value, under null hypothesis, has been detailed in the principal component analysis chapter.
+
+It can be seen that:
+
+the categories Abdo_n, Diarrhea_n, Fever_n and Mayo_n are the most important in the definition of the first dimension.
+The categories Courg_n, Potato_n, Vomit_y and Icecream_n contribute the most to the dimension 2
+The most important (or, contributing) variable categories can be highlighted on the scatter plot as follow:
+
+```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=14, message=FALSE, warning=FALSE}
+fviz_mca_var(res_mca, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_minimal()
+             )
+```
+
+SelectMod selects categories according to their quality of representation, contribution, their name.
+
+SelectMod selects categories according to their quality of representation.
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("ind"), autolab="y",cex=0.7,selectMod="cos2 10")
+```
+
+Variables factor map illustrates the labeled variables which are tose best shown in the plane.
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+fviz_mca_var(res_mca, choice = "quanti.sup",
+             ggtheme = theme_minimal())
+```
+
+
+The plot above gives an idea of what pole of the dimensions the categories are actually contributing to.
+
+It is evident that the categories Abdo_n, Diarrhea_n, Fever_n and Mayo_n have an important contribution to the positive pole of the first dimension, while the categories Fever_y and Diarrhea_y have a major contribution to the negative pole of the first dimension; etc, ..
+
+
+Note that, it's also possible to control the transparency of variable categories according to their contribution values using the option alpha.var = "contrib". For example, type this:
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+# Change the transparency by contrib values
+fviz_mca_var(res_mca, alpha.var="contrib",
+             repel = TRUE,
+             ggtheme = theme_minimal())
+```
+
+
+The R code below colors the individuals by groups using the levels of the variable Vomiting. The argument habillage is used to specify the factor variable for coloring the individuals by groups. A concentration ellipse can be also added around each group using the argument addEllipses = TRUE. If you want a confidence ellipse around the mean point of categories, use ellipse.type = "confidence" The argument palette is used to change group colors.
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+fviz_mca_ind(res_mca, 
+             label = "none", # hide individual labels
+             habillage = "High_alcohol", # color by groups 
+             palette = c("#00AFBB", "#E7B800"),
+             addEllipses = TRUE, ellipse.type = "confidence",
+             ggtheme = theme_minimal()) 
+```
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+library(RColorBrewer)
+darkcols <- brewer.pal(8, "Dark2")
+fviz_mca_ind(res_mca, 
+             label = "none", # hide individual labels
+             habillage = "Performancegroup", # color by groups 
+             palette = darkcols[3:6],
+             addEllipses = TRUE, ellipse.type = "confidence",
+             ggtheme = theme_minimal()) 
+```
+
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+res_mca$quanti
+```
+
+
+
+Note that, to specify the value of the argument habillage, it's also possible to use the index of the column as follow (habillage = 2). Additionally, you can provide an external grouping variable as follow: habillage = poison$Vomiting. For example:
+
+```{r echo=TRUE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE}
+# habillage = index of the column to be used as grouping variable
+fviz_mca_ind(res_mca, habillage = 2, addEllipses = TRUE)
+# habillage = external grouping variable
+fviz_mca_ind(res_mca, habillage = dfalc$High_alcohol, addEllipses = TRUE)
+```
+
+If you want to color individuals using multiple categorical variables at the same time, use the function fviz_ellipses() [in factoextra] as follow:
+
+```{r echo=TRUE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE}
+fviz_ellipses(res_mca, c("High_alcohol", "Performancegroup"),
+              geom = "point")
+```
+
+# top 5 contributing individuals and variable categories
+```{r echo=TRUE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE}
+fviz_mca_biplot(res_mca, select.ind = list(contrib = 8), 
+               select.var = list(contrib = 8),
+               ggtheme = theme_minimal())
+```
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+library(rgl)
+par3d(cex=0.7)
+dfalc3<-dfalc[-19]
+plot3d.mca <- function (x, rows = T, col, cex = par("cex"), ...) 
+{
+    library(scatterplot3d)
+    if (length(cex) == 1) 
+        cex <- rep(cex, 2)
+    s3d <- scatterplot3d(x$cs, type = "n", xlab = "", ...)
+    if (missing(col)) {
+        col <- par("col")
+        if (!is.numeric(col)) 
+            col <- match(col, palette())
+        col <- c(col, col + 1)
+    }
+    else if (length(col) != 2) 
+        col <- rep(col, length = 2)
+    if (rows) {
+	s3d.temp <- s3d$xyz.convert(x$rs)
+	text(s3d.temp, labels = seq(along = x$rs), cex = cex[1], col = col[1],
+...)
+    }
+    s3d.temp <- s3d$xyz.convert(x$cs)
+    text(s3d.temp, labels = dimnames(x$cs)[[1]], cex = cex[2], col =
+col[2], ...)
+    invisible(x)
+}
+
+plot3d.mca(mca(dfalc3, abbrev=TRUE,nf=3),xlim=c(-0.01,0.015),
+        ylim=c(-0.01,0.01),
+        zlim=c(-0.01,0.01))
+
+
+
+```
+
+##### <span style="color:purple">Summary of the first plane</span>
+
+The first dimension aims to characterize individuals with a high positive coordinate on the axis (right) and with a high negative coordinate (left).
+
+Firstly, there are a group of individuals on the right with both mother and father having higher education, mother and father working as a teacher, no class failures and the best performance group based by the final grade. Additionally, they are sharing being active, young, having a mother work in health sector and having family support. On the contrary, there are low frequency scores for mother and father having only elementary level or no education, mother or father work as other or mother being at home, having class failures. Additionally no activities, belonging to the lowest performance group category, average health group and have no family support.
+
+Secondly, there are a group of individuals on the left with class failures one, lowest performancegroup, no willingness to higher education, high alcohol consumption and the oldest age category. Additionally, to some extent common are mother having low educational level, going out with friends, mother work as other or have average level education as well as being a male. Low frecuencies are no class failures, mother and father being high school educated, young age group, mother working as a teacher, best performance group, being a female and having a teacher father.
+
+Thirdly, there is a group on the left with mother and father having little education, health being average, gender female, no alcohol, mother working at home and father as other, having a positive attitude towards high edution, performing at an almost average level and sometimes going out with friends. Low frequencies are there for mother큦 or father큦 higher education, mother working as a teacher, being a male, using alcohol, going out a lot, father being a teacher, health being very good, having no ideas about further education and haing some class failures. 
+
+The dimension 2 opposes individuals characterized by a strongly positive coordinate on the axis (to the top of the graph) to individuals characterized by a strongly negative coordinate on the axis (to the bottom of the graph).
+The group 1 (characterized by a positive coordinate on the axis) is sharing :
+.high frequency for factors like Class_failures=Class_failures_1, Performancegroup=(-Inf,10], Education_pos=Education_pos_no, High_alcohol=High_alcohol_1, Agegroup=(17,Inf], Education_F=Education_F_(-1,2], Going_out=Going_out_(3,5], Job_M=Job_M_other, Education_M=Education_M_(2,3] and Gender=M (factors are sorted from the most common).
+.low frequency for factors like Class_failures=Class_failures_0, Education_M=Education_M_(3,4], Education_F=Education_F_(3,4], Education_pos=Education_pos_yes, High_alcohol=High_alcohol_0, Agegroup=(0,16], Job_M=Job_M_teacher, Performancegroup=(14, Inf], Gender=F and Job_F=Job_F_teacher (factors are sorted from the rarest).
+
+The group 2 (characterized by a positive coordinate on the axis) is sharing :
+.high frequency for factors like Education_M=Education_M_(3,4], Education_F=Education_F_(3,4], Job_M=Job_M_teacher, Job_F=Job_F_teacher, Class_failures=Class_failures_0, Performancegroup=(14, Inf], Activities=Activities_yes, Agegroup=(0,16], Job_M=Job_M_health and Familial_support=Familial_support_yes (factors are sorted from the most common).
+.low frequency for factors like Education_M=Education_M_(-1,2], Education_F=Education_F_(-1,2], Job_M=Job_M_other, Job_F=Job_F_other, Job_M=Job_M_at_home, Class_failures=Class_failures_1, Activities=Activities_no, Performancegroup=(-Inf,10], Healthgroup=Healthgroup_(2,3] and Familial_support=Familial_support_no (factors are sorted from the rarest).
+
+The group 3 (characterized by a negative coordinate on the axis) is sharing :
+.high frequency for factors like Education_M=Education_M_(-1,2], Education_F=Education_F_(-1,2], Healthgroup=Healthgroup_(2,3], Gender=F, High_alcohol=High_alcohol_0, Job_M=Job_M_at_home, Job_F=Job_F_other, Performancegroup=(10,12], Going_out=Going_out_(0,2] and Education_pos=Education_pos_yes (factors are sorted from the most common).
+.low frequency for factors like Education_M=Education_M_(3,4], Education_F=Education_F_(3,4], Job_M=Job_M_teacher, Gender=M, High_alcohol=High_alcohol_1, Going_out=Going_out_(3,5], Job_F=Job_F_teacher, Healthgroup=Healthgroup_(3,5], Education_pos=Education_pos_no and Class_failures=Class_failures_1 (factors are sorted from the rarest).
+
+
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("ind"), autolab="y",cex=0.7,selectMod="contrib 20")
+```
+Select allows us to select individuals
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("var","quanti.sup"), autolab="y",cex=0.7,select="cos2 20")
+```
+
+Simultanous representation with a selection for the individuals with select and a selection for the categories with Selectmod
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, autolab="y",cex=0.7,select="cos2 20",selectMod="cos2 10")
+```
+
+
+Graphs of the variables
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, choix="var",xlim=c(0,0.6), ylim=c(0,0.6),cex=0.7)
+```
+
+To plot dimensions 3 and four we simply define the axis:
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("var"), select="contrib 20", axes=3:4,cex=0.7)
+```
+
+The categories that are best projected to the third and fourth axis.
+
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plot(res_mca, invisible=c("ind"), select="contrib 20", axes=3:4,cex=0.7)
+```
+
+The function plotellipses draws one graph per qalitative variable with a confidence ellipse around each category. Ellipses do not overlap meaning that the sub-populations are significantly separated.
+Confidence ellipses around the categories for the variables 14 to 17 for example
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+plotellipses(res_mca, keepvar=c(14:17),cex=0.7)
+```
+
+
+Or by using [this nice approach](http://www.gastonsanchez.com/visually-enforced/how-to/2012/10/13/MCA-in-R/) to display both the observations and the categories. Moreover, since some individuals will be overlapped, we can add some density curves with geom_density2d() to see those zones that are highly concentrated:
+
+```{r fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+ # MCA plot of observations and categories
+dfalcqual<-dfalc[-19]
+res.mca<-MCA(dfalcqual,graph=FALSE)
+cats = apply(dfalcqual, 2, function(x) nlevels(as.factor(x)))
+
+mca1_vars_df = data.frame(res.mca$var$coord, Variable = rep(names(cats), cats))
+
+ggplot(data = mca1_vars_df, aes(x = Dim.1, y = Dim.2)) +
+  geom_hline(yintercept = 0, colour = "gray70") +
+  geom_vline(xintercept = 0, colour = "gray70") +
+  geom_point(colour = "gray50", alpha = 0.7) +
+  geom_density2d(colour = "gray80") +
+  geom_text(data = mca1_vars_df, 
+            aes(x = Dim.1, y = Dim.2, 
+                label = rownames(mca1_vars_df), colour = Variable)) +
+  ggtitle("MCA plot of variables using My tea data") +
+  scale_colour_discrete(name = "Variable")
+```
+
+```{r eval=FALSE, echo=TRUE,fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE, include=FALSE}
+classif(res_mca, file="",dim=1:2,nclus=-1,selec="cos2",coef=1,mmax=1,nmax=10,graph=TRUE)
+```
+
+```{r fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE, include=FALSE}
+classif(res_mca,file="clus.xls",dim=1:2,nclus=-1,selec="cos2",coef=1,mmax=1,nmax=10,graph=TRUE,options="r, echo = FALSE, fig.height = 3.5, fig.width = 5.5")
+```
+
+```{r echo=FALSE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
+
+
+```
+
+
+
+<div style="display:table-cell; vertical-align:middle; text-align:center">
+<img src="Rplot.png" alt="" width="600" height="1000">
+</div>
+
+
+
+Finally, a classification made on individuals reveals three clusters. 
+
+The **first cluster** has individuals with high frequencies for
+
+
+-  <span style="color:red">Class failures one or more</span>
+-  <span style="color:red">Lowest performance group</span>
+-  <span style="color:red">No willingness to higher education</span>
+-  <span style="color:red">Oldest age group</span>
+-  <span style="color:red">Guardian other than mother or father</span>
+-  <span style="color:red">Going out frequently</span>
+-  <span style="color:red">**High alcohol consumption**</span>
+-  <span style="color:red">Mother's and/or father's low educational status</span>
+-  <span style="color:red">Very good health status</span>
+
+and low frequencies for
+
+-  <span style="color:orange">No class failures</span>
+-  <span style="color:orange">Mother's high educational status</span>
+-  <span style="color:orange">Young age</span>
+-  <span style="color:orange">Father's high educational status</span>
+-  <span style="color:orange">Low alcohol consumption</span>
+-  <span style="color:orange">Medium low performance</span>
+
+
+The <span style="color:red">**second cluster**</span> has individuals with high frequencies for
+
+-  <span style="color:red">No class failures</span>
+-  <span style="color:red">Mother's or father's low educational status</span>
+-  <span style="color:red">Being a female</span>
+-  <span style="color:red">Willingness to higher education</span>
+-  <span style="color:red">Mother working as other</span>
+-  <span style="color:red">Mother's secondary education</span>
+-  <span style="color:red">Average health</span></span>
+-  <span style="color:red">Medium low performance</span>
+-  <span style="color:red">Father's job being other</span>
+
+and low frequencies for
+
+-  <span style="color:orange">Mother큦 and/or father's education being higher
+-  <span style="color:orange">Mother working as a teacher
+-  <span style="color:orange">One or more failed classes
+-  <span style="color:orange">Being a male
+-  <span style="color:orange">Father working as a teacher
+-  <span style="color:orange">Low performance
+-  <span style="color:orange">No willingess to higher education
+-  <span style="color:orange">Older age
+-  <span style="color:orange">Going out with friends frequently</span>
+
+
+And, finally, the <span style="color:green">**third cluster**</span> has individuals with high frequencies for
+
+-  <span style="color:red">Mother큦 and/or father's high educational status</span>
+-  <span style="color:red">Mother and/or father working as a teacher</span>
+-  <span style="color:red">No class failures</span>
+-  <span style="color:red">Extra cullicular activities</span>
+-  <span style="color:red">Mother working in the health care sector</span>
+-  <span style="color:red">Being a male</span>
+-  <span style="color:red">Father working in the health care sector</span>
+-  <span style="color:red">Highest performance group</span>
+
+and low frequencies for
+
+-  <span style="color:orange">Mother's or father's low educational status</span>
+-  <span style="color:orange">Mother working as other</span>
+-  <span style="color:orange">Mother's education being secondary</span>
+-  <span style="color:orange">One or more class failures</span>
+-  <span style="color:orange">Mother being at home</span>
+-  <span style="color:orange">Father work as other</span>
+-  <span style="color:orange">No activities</span>
+-  <span style="color:orange">Being a female</span>
+-  <span style="color:orange">Lowest performance group</span>
+
+
+
+
+
+On this biplot the first two dimensions are shown.Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).
+We observe that there are a few categories located quie near to the center of the graph. Unpackaded tea and tea shops as well as tea bag and chain store categories are close to one another. Additionally, not work, alone and age category from 45 to 59 are located in one group.There seems to be one outlier category, those who drink tea with "other"" ways on the top of the plot. 
+The first dimension captures mainly in what form people have their tea and where they buy it from. Individuals with high coordinates on the first component tend to by their tea in tea shops unpackaged and they are likely to drink it with lemon, whereas low coordinate-individuals buy tea bags in chain stores (more common~closer to the axis) and use milk.
+For the second dimension there are "in-between" individuals at the top: they do their either unpacked and teabag shopping in either the chain stores and the tea shops, and cannot really say how they drink it and thus describe it using "other". 
+
+References: 
+
+-  [https://www.analyticsvidhya.com/blog/2016/03/practical-guide-principal-component-analysis-python/](https://www.analyticsvidhya.com/blog/2016/03/practical-guide-principal-component-analysis-python/)
+
+-  [http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/114-mca-multiple-correspondence-analysis-in-r-essentials/#biplot](http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/114-mca-multiple-correspondence-analysis-in-r-essentials/#biplot)
+
+-  [https://georgemdallas.wordpress.com/2013/10/30/principal-component-analysis-4-dummies-eigenvectors-eigenvalues-and-dimension-reduction/](https://georgemdallas.wordpress.com/2013/10/30/principal-component-analysis-4-dummies-eigenvectors-eigenvalues-and-dimension-reduction/)
+
+-  [http://factominer.free.fr/factomethods/categories-description.html](http://factominer.free.fr/factomethods/categories-description.html)
+[http://factominer.free.fr/factomethods/dimensions-description.html](http://factominer.free.fr/factomethods/dimensions-description.html)
+
+-  [http://factominer.free.fr/factomethods/multiple-correspondence-analysis.html](http://factominer.free.fr/factomethods/multiple-correspondence-analysis.html)
+
+-  [http://www.gastonsanchez.com/visually-enforced/how-to/2012/10/13/MCA-in-R/](http://www.gastonsanchez.com/visually-enforced/how-to/2012/10/13/MCA-in-R/)
+
