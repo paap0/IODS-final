@@ -151,7 +151,7 @@ colNames <- names(dfalc)[2:5]
 for(i in colNames){
     plt<-ggplot(dfalc, aes_string(x=i)) + 
       geom_bar(aes(fill = Gender), position = "dodge", stat="count")+
-      scale_fill_manual(values = c("green","purple"))
+      scale_fill_manual(values = c("pink","purple"))
       print(plt)
 }
 
@@ -167,7 +167,8 @@ colNames <- names(dfalc)[6:9]
 for(i in colNames){
     plt<-ggplot(dfalc, aes_string(x=i)) + 
       geom_bar(aes(fill = Gender), position = "dodge", stat="count")+
-      scale_fill_manual(values = c("green","purple"))
+      scale_fill_manual(values = c("pink","purple"))
+
       print(plt)
 }
 
@@ -186,7 +187,8 @@ colNames <- names(dfalc)[10:13]
 for(i in colNames){
     plt<-ggplot(dfalc, aes_string(x=i)) + 
       geom_bar(aes(fill = Gender), position = "dodge", stat="count")+
-      scale_fill_manual(values = c("green","purple"))
+      scale_fill_manual(values = c("pink","purple"))
+
       print(plt)
 }
 
@@ -203,7 +205,8 @@ colNames <- names(dfalc)[14:17]
 for(i in colNames){
     plt<-ggplot(dfalc, aes_string(x=i)) + 
       geom_bar(aes(fill = Gender), position = "dodge", stat="count")+
-      scale_fill_manual(values = c("green","purple"))
+      scale_fill_manual(values = c("pink","purple"))
+
       print(plt)
 }
 
@@ -221,7 +224,8 @@ colNames <- names(dfalc)[18:20]
 for(i in colNames){
     plt<-ggplot(dfalc, aes_string(x=i)) + 
       geom_bar(aes(fill = Gender), position = "dodge", stat="count")+
-      scale_fill_manual(values = c("green","purple"))
+      scale_fill_manual(values = c("pink","purple"))
+
       print(plt)
 }
 
@@ -229,7 +233,7 @@ for(i in colNames){
 
 &nbsp;
 
-Performance groups represent approximately the lowest, middle low, middle high and highest groups. Very low or low alcohol consumers both at weekdays and during weekends represent 60% of the respondents.However, there seems to be an expected trend towards males drinking more.
+Performance groups represent approximately the lowest, medium low, middle high and highest groups. Very low or low alcohol consumers both at weekdays and during weekends represent 60% of the respondents.However, there seems to be an expected trend towards males drinking more.
 
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
@@ -387,7 +391,7 @@ The first two express 14% of the total dataset variance meaning that 14% of the 
 To further clarify the MCA results graphical representation is used. Firstly, a biplot showing the global pattern within the data is created. Observations are represented by blue points and variables by red triangles and labels. The distance between any observation points or variable points gives a measure of their similarity (or dissimilarity). Similar types of individuals are close on the map, as well as similar kinds of variables.
 
 
-```{r fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+```{r fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 fviz_mca_biplot(res_mca, 
                repel = TRUE, # Avoid text overlapping (slow if many point)
                ggtheme = theme_minimal())
@@ -423,7 +427,7 @@ It can be seen that, the variables mother큦 and father큦 education as well as fa
 
 It's possible to change the color and the shape of the variable points as well as the number of top variables, i.e. the ones having the highest contribution.
 
-```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 
 fviz_mca_var(res_mca, col.var="black", shape.var = 15,
              repel = TRUE,select.var = list(contrib = 6))
@@ -431,7 +435,7 @@ fviz_mca_var(res_mca, col.var="black", shape.var = 15,
 
 It is also possible to control the transparency of variable categories according to their contribution values.
 
-```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 # Change the transparency by contrib values
 fviz_mca_var(res_mca, alpha.var="contrib",
              repel = TRUE,
@@ -440,7 +444,7 @@ fviz_mca_var(res_mca, alpha.var="contrib",
 
 The most contributing, i.e. important variable categories can be visualized by gradient-colouring them respect to their contribution value. Meaning basically, that low, medium and high contributions have different colours.
 
-```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=14, message=FALSE, warning=FALSE}
+```{r echo=TRUE, fig.align="center", fig.height=9, fig.width=13, message=FALSE, warning=FALSE}
 fviz_mca_var(res_mca, col.var = "contrib",
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
              repel = TRUE, # avoid text overlapping (slow)
@@ -462,7 +466,7 @@ The red dashed line indicates the expected average value, If the contributions w
 ###<span style="color:purple">Variable cos2</span>
 
 For cos2 values it is similarly possible to change the color and the shape of the variable points as well as the number of top variables, i.e. the ones having the highest cos2 values.
-```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 
 fviz_mca_var(res_mca, col.var="black", shape.var = 15,
              repel = TRUE,select.var = list(cos2 = 10))
@@ -480,7 +484,7 @@ fviz_mca_var(res_mca, alpha.var="cos2",
 
 Furthermore, just as with the contributions, variable categories can be gradient-coloured with respect to their cos2 value. Meaning that low, medium and high co2 values have different colours.
 
-```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=10, message=FALSE, warning=FALSE}
+```{r echo=TRUE, fig.align="center", fig.height=9, fig.width=13, message=FALSE, warning=FALSE}
 # Color by cos2 values: quality on the factor map
 fviz_mca_var(res_mca, col.var = "cos2",
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
@@ -505,14 +509,14 @@ Individuals can be coloured by groups and a concentration ellipse can be added a
 ####<span style="color:purple">Grouped biplots:**Performance group**</span>
  
 
-```{r echo=TRUE, fig.align="center", fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 # habillage = external grouping variable
 fviz_mca_ind(res_mca, habillage = dfalc$Performancegroup, addEllipses = TRUE)
 ```
 
 ####<span style="color:purple">Grouped biplots:**High alcohol**</span>
 
-```{r echo=TRUE, fig.align="center", fig.height=10, fig.width=10, message=FALSE, warning=FALSE}
+```{r echo=TRUE, fig.align="center", fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 # habillage = index of the column to be used as grouping variable
 fviz_mca_ind(res_mca, habillage = dfalc$High_alcohol, addEllipses = TRUE)
 ```
@@ -527,7 +531,7 @@ fviz_ellipses(res_mca, c("High_alcohol", "Performancegroup"),
 ###<span style="color:purple">Quantitative supplementary variable:**Final grade**</span>
 
 
-```{r echo=TRUE, fig.align="center", fig.height=4, fig.width=4, message=FALSE, warning=FALSE}
+```{r echo=TRUE, fig.align="center", fig.height=3, fig.width=3, message=FALSE, warning=FALSE}
 fviz_mca_var(res_mca, choice = "quanti.sup",
              ggtheme = theme_minimal())
 ```
@@ -546,20 +550,20 @@ res_mca$quanti
 
 The first dimension aims to characterize individuals with a high positive coordinate on the axis (right) and with a high negative coordinate (left). 
 
-Firstly, there are a group of individuals on the right with both mother and father having higher education, mother and father working as a teacher, no class failures and the best performance group based by the final grade. Additionally, they are sharing being active, young, having a mother work in health sector and having family support. On the contrary, there are low frequency scores for mother and father having only elementary level or no education, mother or father work as other or mother being at home, having class failures. Additionally no activities, belonging to the lowest performance group category, average health group and have no family support.
+Firstly, there are a group of individuals on the right with both mother and father having higher education, mother and father working as a teacher, no class failures and the best performance group. Additionally, they are sharing being active, young, having a mother work in health sector and having family support. On the contrary, there are low frequency scores for mother and father having only elementary level or no education, mother or father work as "other"" or mother being at home and having class failures as well as low frequencies for no activities, belonging to the lowest performance group category, average health group and no family support.
 
-Secondly, there are a group of individuals on the left with class failures one, lowest performancegroup, no willingness to higher education, high alcohol consumption and the oldest age category. Additionally, to some extent common are mother having low educational level, going out with friends, mother work as other or have average level education as well as being a male. Low frecuencies are no class failures, mother and father being high school educated, young age group, mother working as a teacher, best performance group, being a female and having a teacher father.
+Secondly, there are a group of individuals on the left with class failures one or more, lowest performancegroup, no willingness to higher education, high alcohol consumption and the oldest age category. Additionally, to some extent common are mother having low educational level, going out with friends, mother work as other or have average level education as well as being a male. Low frecuencies are for no class failures, mother and father being high school educated, young age group, mother working as a teacher, best performance group, being a female and having father as a teacher.
 
-Thirdly, there is a group on the left with mother and father having little education, health being average, gender female, no alcohol, mother working at home and father as other, having a positive attitude towards high edution, performing at an almost average level and sometimes going out with friends. Low frequencies are there for mother큦 or father큦 higher education, mother working as a teacher, being a male, using alcohol, going out a lot, father being a teacher, health being very good, having no ideas about further education and haing some class failures. 
+Thirdly, there is a group on the left with mother and father having little education, health being average, gender female, low alcohol consumption, mother working at home and father as "other"", having a positive attitude towards high edution, performing at an almost average level and sometimes going out with friends. Low frequencies are there for mother큦 or father큦 higher education, mother working as a teacher, being a male, using alcohol, going out a lot, father being a teacher, health being very good, having no ideas about further education and haing some class failures. 
 
 ####<span style="color:purple">Second dimension</span>
 
 The second dimension aims to characterize individuals with a high positive coordinate on the axis (top) and with a high negative coordinate (bottom). 
 
-Firstly, there is a group up in the graph having in common one or more failures, lowest performance group, negative attitude towards higher eduction, high alcohol consumption,
-age above 17, father큦 low education, going out frequently, mother working as "other", mothers low education and being a male. Additionally, there have low frequencies for no class failures, mother큦 and father큦 high education, positive attitude towards education, low alcohol consumption, being young, having mother in education, best performance group, being a female and having father in education.
+Firstly, there is a group up in the graph having in common one or more class failures, lowest performance group, negative attitude towards higher eduction, high alcohol consumption,
+age above 17, father큦 low education, going out frequently, mother working as "other", mother큦 low education and being a male. Additionally, the group members  have low frequencies for no class failures, mother큦 and father큦 high education, positive attitude towards education, low alcohol consumption, being young, having mother in education, best performance group, being a female and having father in education.
 
-Secondly, there is a group sharing high frequency for mother and father being highly educated, mother and father working as educators, no class failures, performing best, being active and young, mother working in the health sector having family support. In addition there is low frequency for mother눼s or fathers low education, jobs as other, mother at home, one or more class failures, no activities, lowest performance group, average health and no family support.
+Secondly, there is a group sharing high frequency for mother and father being highly educated, mother and father working as educators, no class failures, performing best, being active and young, mother working in the health sector having family support. In addition there is low frequency for mother큦 or father큦 low education, jobs as "other"", mother at home, one or more class failures, no activities, lowest performance group, average health and no family support.
 
 Thirdly, there is a negative co-ordinate group sharing high frequency for the lowest level of education of the mother and the father, average health, being a female, low alcohol usage, mother being at home, father working as "other", performing middle low, rarely or never going out and having a positive attitude towards education. Low frequencies are common for high education for mother and father, mother being a teacher, being a male, using a lot of alcohol, going out frequently, father working as a teacher, best health group, no positive attitude towards education, one or more failures.
 
@@ -578,7 +582,7 @@ classif(res_mca,file="clus.xls",dim=1:2,nclus=-1,selec="cos2",coef=1,mmax=1,nmax
 
 
 <div style="display:table-cell; vertical-align:middle; text-align:center">
-<img src="Rplot.png" alt="" width="1000" height="1000">
+<img src="Rplot.png" alt="" width="600" height="1200">
 </div>
 
 
@@ -614,7 +618,7 @@ The <span style="color:red">**second cluster**</span> has individuals with high 
 -  <span style="color:red">Mother's or father's low educational status</span>
 -  <span style="color:red">Being a female</span>
 -  <span style="color:red">Willingness to higher education</span>
--  <span style="color:red">Mother working as other</span>
+-  <span style="color:red">Mother working as "other"</span>
 -  <span style="color:red">Mother's secondary education</span>
 -  <span style="color:red">Average health</span></span>
 -  <span style="color:red">Medium low performance</span>
@@ -672,9 +676,9 @@ References:
 -  [https://georgemdallas.wordpress.com/2013/10/30/principal-component-analysis-4-dummies-eigenvectors-eigenvalues-and-dimension-reduction/](https://georgemdallas.wordpress.com/2013/10/30/principal-component-analysis-4-dummies-eigenvectors-eigenvalues-and-dimension-reduction/)
 
 -  [http://factominer.free.fr/factomethods/categories-description.html](http://factominer.free.fr/factomethods/categories-description.html)
-[http://factominer.free.fr/factomethods/dimensions-description.html](http://factominer.free.fr/factomethods/dimensions-description.html)
 
 -  [http://factominer.free.fr/factomethods/multiple-correspondence-analysis.html](http://factominer.free.fr/factomethods/multiple-correspondence-analysis.html)
 
 -  [http://www.gastonsanchez.com/visually-enforced/how-to/2012/10/13/MCA-in-R/](http://www.gastonsanchez.com/visually-enforced/how-to/2012/10/13/MCA-in-R/)
 
+-  FactoMineR videos and many more
